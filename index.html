@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+
+<html lang="ru">
+
+<head>
+
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+
+  <meta http-equiv="Pragma" content="no-cache">
+
+  <meta http-equiv="Expires" content="0">
+
+  <!-- v2.1 bilingual -->
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+
+<title>Gloomhaven: Челюсти Льва</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/styles.css">
+
+</head>
+
+<body>
+
+
+
+<!-- ─── Header ─── -->
+
+<header id="app-header">
+
+  <h1 id="game-title">Мрачная гавань. Челюсти Льва</h1>
+
+  <div id="header-controls">
+
+    <div id="lang-toggle">
+
+      <button id="btn-lang-ru" onclick="setLang('ru')">RU</button>
+
+      <button id="btn-lang-de" onclick="setLang('de')">DE</button>
+
+    </div>
+
+    <button id="theme-toggle" onclick="toggleTheme()" title="Переключить тему">🌙</button>
+
+  </div>
+
+</header>
+
+
+
+<!-- ─── Tab Navigation ─── -->
+
+<nav id="tab-nav">
+
+  <button id="nav-hamburger" onclick="toggleMobileNav()">☰ <span id="nav-current-label">Герои</span> ▾</button>
+
+  <button class="tab-btn active" onclick="switchTab('heroes')" id="tabbtn-heroes">🃏 Герои</button>
+
+  <button class="tab-btn" onclick="switchTab('missions')" id="tabbtn-missions">📖 Миссии</button>
+
+  <button class="tab-btn" onclick="switchTab('goals')" id="tabbtn-goals">⚔ Задания</button>
+
+  <button class="tab-btn" onclick="switchTab('events')" id="tabbtn-events">🏙 События</button>
+
+  <button class="tab-btn" onclick="switchTab('shop')" id="tabbtn-shop">🛒 Магазин</button>
+
+  <button class="tab-btn" onclick="switchTab('helper')" id="tabbtn-helper">📚 Справочник</button>
+
+  <button class="tab-btn" onclick="switchTab('rules')" id="tabbtn-rules">📋 Правила</button>
+
+</nav>
+
+
+
+<!-- ─── Main ─── -->
+
+<main id="main">
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 1: HERO CARDS
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-heroes" class="tab-panel active">
+
+    <h2 class="section-title" id="heroes-title">🃏 Карты Героев</h2>
+
+    <div id="card-search-bar">
+      <input type="number" id="card-search-input" min="1" max="999"
+        placeholder="ID карты (001–252)..."
+        data-placeholder-ru="ID карты (001–252)..."
+        data-placeholder-de="Karten-ID (001–252)..."
+        onkeydown="if(event.key==='Enter') searchCardById()">
+      <button id="card-search-btn" onclick="searchCardById()">🔍</button>
+    </div>
+
+    <!-- Character Select -->
+
+    <div id="char-select-prompt">
+
+      <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:14px;font-style:italic;" id="char-select-hint">Выберите персонажа:</p>
+
+      <div id="char-select-grid">
+
+        <div class="char-card" onclick="selectChar('HA')" id="charcard-HA">
+
+          <div class="char-card-icon" style="background:#3a2010;border-color:var(--col-ha);">🪓</div>
+
+          <div class="char-card-name" id="cc-name-HA">Тесак</div>
+
+          <div class="char-card-sub" id="cc-sub-HA">Коричневый</div>
+
+        </div>
+
+        <div class="char-card" onclick="selectChar('DE')" id="charcard-DE">
+
+          <div class="char-card-icon" style="background:#2e1a08;border-color:var(--col-de);">💥</div>
+
+          <div class="char-card-name" id="cc-name-DE">Подрывник</div>
+
+          <div class="char-card-sub" id="cc-sub-DE">Оранжевый</div>
+
+        </div>
+
+        <div class="char-card" onclick="selectChar('VW')" id="charcard-VW">
+
+          <div class="char-card-icon" style="background:#0e1520;border-color:var(--col-vw);">🌀</div>
+
+          <div class="char-card-name" id="cc-name-VW">Жрица Пустоты</div>
+
+          <div class="char-card-sub" id="cc-sub-VW">Серый</div>
+
+        </div>
+
+        <div class="char-card" onclick="selectChar('RG')" id="charcard-RG">
+
+          <div class="char-card-icon" style="background:#200e0e;border-color:var(--col-rg);">🛡</div>
+
+          <div class="char-card-name" id="cc-name-RG">Алый гвардеец</div>
+
+          <div class="char-card-sub" id="cc-sub-RG">Красный</div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- Character Card View -->
+
+    <div id="char-view">
+
+      <button class="back-btn" onclick="backToCharSelect()" data-ru="← Персонажи" data-de="← Charaktere">← Персонажи</button>
+
+
+
+      <!-- Active char header -->
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+
+        <div id="active-char-icon" style="width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;border:2px solid var(--border2);flex-shrink:0;"></div>
+
+        <div style="flex:1;min-width:0;">
+
+          <div id="active-char-name" style="font-family:'Cinzel',serif;font-size:1rem;color:var(--gold2);"></div>
+
+          <div id="active-char-sub" style="font-size:0.75rem;color:var(--text-dim);"></div>
+
+        </div>
+
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+
+          <span id="mission-selector-label" style="font-family:'Cinzel',serif;font-size:0.7rem;color:var(--text-dim);" data-ru="Миссия" data-de="Mission">Миссия</span>
+
+          <button class="mission-step-btn" onclick="changeMission(-1)" aria-label="prev">−</button>
+
+          <span id="mission-num-display" style="font-family:'Cinzel',serif;font-size:1.1rem;font-weight:700;color:var(--gold2);min-width:20px;text-align:center;">1</span>
+
+          <button class="mission-step-btn" onclick="changeMission(1)" aria-label="next">+</button>
+
+        </div>
+
+      </div>
+
+
+
+      <!-- Deck counter -->
+
+      <div id="deck-counter">
+
+        <span class="deck-counter-label" style="font-family:'Cinzel',serif;font-size:0.8rem;color:var(--text-dim);" data-ru="Колода" data-de="Deck">Колода</span>
+
+        <span id="deck-counter-num">0 / 10</span>
+
+        <button id="btn-clear-deck" onclick="clearDeck()"><span data-ru="✕ Очистить" data-de="Deck leeren">✕ Очистить</span></button>
+
+      </div>
+
+
+
+      <!-- View tabs: All Cards / My Deck -->
+
+      <div class="cards-view-tabs">
+
+        <button class="cards-view-tab-btn active" id="vtab-all" onclick="setCardsView('all')"><span data-ru="Все карты" data-de="Alle Karten">Все карты</span></button>
+
+        <button class="cards-view-tab-btn" id="vtab-deck" onclick="setCardsView('deck')"><span data-ru="Моя колода" data-de="Mein Deck">Моя колода</span></button>
+
+      </div>
+
+
+
+      <!-- All cards view -->
+
+      <div id="all-cards-view">
+
+        <div id="level-filter"></div>
+
+        <div id="cards-grid"></div>
+
+      </div>
+
+
+
+      <!-- My deck view -->
+
+      <div id="my-deck-view">
+
+        <div id="deck-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+
+        <div id="deck-empty" class="empty-msg hidden" data-ru="Колода пуста. Добавьте карты из вкладки «Все карты»." data-de="Deck ist leer. Karten im Tab 'Alle Karten' hinzufügen.">Колода пуста. Добавьте карты из вкладки «Все карты».</div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 2: CITY EVENTS
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-events" class="tab-panel">
+
+    <h2 class="section-title" id="events-title">🏙 Городские события</h2>
+
+    <div class="event-controls">
+
+      <select id="event-select" onchange="loadEventFromSelect()">
+
+        <option value="">— Выбрать событие —</option>
+
+      </select>
+
+      <button class="btn-gold" onclick="loadEvent()" id="btn-event-show">Показать</button>
+
+      <button class="btn-gold" id="btn-events-reset" onclick="resetPlayedEvents()" title="Сбросить сыгранные события" style="background:none;border:1px solid var(--border2);color:var(--text-dim);">↺</button>
+
+    </div>
+
+    <button id="btn-draw-event" onclick="drawEventCard()">🎴 Взять карту</button>
+
+
+
+    <div id="event-display-wrap" class="hidden">
+
+      <!-- Story text -->
+
+      <div class="event-story-box">
+
+        <div class="event-num-badge" id="event-num-badge">01</div>
+
+        <div class="event-story-text" id="event-story-text"></div>
+
+      </div>
+
+
+
+      <!-- Choices -->
+
+      <div class="event-story-box">
+
+        <div class="event-choices-block">
+
+          <div class="event-choice-item">
+
+            <div class="event-choice-label" id="event-choice-a-label"></div>
+
+            <div class="event-choice-btn-wrap">
+
+              <button class="btn-choice-a" id="btn-choice-a" onclick="showEventChoice('a')" data-ru="Вариант А" data-de="Option A">Вариант А</button>
+
+            </div>
+
+          </div>
+
+          <div class="event-choice-item">
+
+            <div class="event-choice-label" id="event-choice-b-label"></div>
+
+            <div class="event-choice-btn-wrap">
+
+              <button class="btn-choice-b" id="btn-choice-b" onclick="showEventChoice('b')" data-ru="Вариант Б" data-de="Option B">Вариант Б</button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+
+        <!-- Result box -->
+
+        <div id="event-result-box" class="hidden">
+
+          <div class="event-result-header" id="event-result-header"></div>
+
+          <div class="event-result-text" id="event-result-text"></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <div id="event-empty" class="event-empty" data-ru="Выберите событие из списка (01–22)." data-de="Wähle ein Ereignis aus der Liste (01–22).">
+
+      Выберите событие из списка (01–22).
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 3: BATTLE GOALS
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-goals" class="tab-panel">
+
+    <div id="goals-scroll-bg"></div>
+
+    <div id="goals-content">
+
+      <h2 class="section-title" id="goals-title">⚔ Боевые задания</h2>
+
+      <div class="goals-controls">
+
+        <select id="goal-select" onchange="loadGoalFromSelect()">
+
+          <option value="">— Выбрать задание —</option>
+
+        </select>
+
+      </div>
+
+
+
+      <div id="goal-display-wrap" class="hidden">
+
+        <div class="goal-scroll-card">
+
+          <div class="goal-scroll-inner">
+
+            <div id="goal-num" class="goal-scroll-num"></div>
+
+            <div id="goal-name" class="goal-scroll-name"></div>
+
+            <div class="goal-scroll-divider"><span>✦</span></div>
+
+            <div id="goal-condition" class="goal-scroll-condition"></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 4: SHOP
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-shop" class="tab-panel">
+
+    <h2 class="section-title" id="shop-title">🛒 Магазин</h2>
+
+
+
+    <!-- View toggle: Shop / Owned -->
+
+    <div class="cards-view-tabs" style="margin-bottom:16px;">
+
+      <button class="cards-view-tab-btn active" id="shop-vtab-all" onclick="setShopView('all')" data-ru="Все товары" data-de="Alle Waren">Все товары</button>
+
+      <button class="cards-view-tab-btn" id="shop-vtab-owned" onclick="setShopView('owned')" data-ru="Мои покупки" data-de="Meine Käufe">Мои покупки</button>
+
+    </div>
+
+
+
+    <!-- Unlock controls -->
+
+    <div id="shop-unlock-bar">
+
+      <span id="shop-unlock-label">Открыть:</span>
+
+      <button id="btn-unlock-b" onclick="unlockShopBatch('b')" class="btn-unlock">15–20</button>
+
+      <button id="btn-unlock-c" onclick="unlockShopBatch('c')" class="btn-unlock">21–28</button>
+
+      <div id="shop-unlock-single">
+
+        <input id="shop-unlock-input" type="number" min="1" max="36" placeholder="№">
+
+        <button onclick="unlockSingleItem()" id="btn-unlock-add" class="btn-unlock">+ Добавить</button>
+
+      </div>
+
+      <button id="btn-shop-reset" onclick="resetShop()" title="Сбросить магазин" style="background:none;border:1px solid var(--border2);color:var(--text-dim);padding:4px 9px;border-radius:5px;cursor:pointer;font-size:0.85rem;margin-left:6px;">↺</button>
+
+    </div>
+
+
+
+    <!-- All items view -->
+
+    <div id="shop-all-view">
+
+      <div id="items-grid"></div>
+
+    </div>
+
+
+
+    <!-- Owned items view -->
+
+    <div id="shop-owned-view" style="display:none;">
+
+      <div id="owned-grid"></div>
+
+      <div id="owned-empty" class="empty-msg hidden" data-ru="Нет купленных предметов." data-de="Keine gekauften Gegenstände.">Нет купленных предметов.</div>
+
+    </div>
+
+
+
+    <!-- Item modal -->
+
+    <div id="item-modal" onclick="closeItemModal(event)">
+
+      <div id="item-modal-inner">
+
+        <button class="btn-close-modal" onclick="closeItemModalDirect()">✕</button>
+
+        <img id="item-modal-img" src="" alt="">
+
+        <div class="item-modal-body">
+
+          <div class="item-modal-title" id="item-modal-title"></div>
+
+          <div class="item-modal-price" id="item-modal-price"></div>
+
+          <div class="item-modal-desc" id="item-modal-desc"></div>
+
+          <div class="modal-actions">
+
+            <button class="btn-primary" id="item-modal-buy-btn" onclick="toggleItemOwned()">Купити</button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 5: RULES REMINDER
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-rules" class="tab-panel">
+    <h2 class="section-title" id="rules-title">📋 Памятка по правилам</h2>
+
+    <div id="reminder-img-wrap">
+      <img src="./assets/reminder/reminder.png" alt="Памятка" onerror="this.style.display='none'">
+    </div>
+
+    <div class="rules-callout">
+      <strong data-ru="⚡ Быстрый справочник" data-de="⚡ Schnellreferenz">⚡ Быстрый справочник</strong>
+      <span data-ru="Короткая памятка для игры за столом. Не заменяет полную книгу правил." data-de="Kurzübersicht für den Spieltisch. Ersetzt nicht das vollständige Regelbuch.">Короткая памятка для игры за столом. Не заменяет полную книгу правил.</span>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="⚔ Основные действия" data-de="⚔ Grundaktionen">⚔ Основные действия</h3>
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th data-ru="Действие" data-de="Aktion">Действие</th>
+            <th data-ru="Что значит" data-de="Bedeutung">Что значит</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>⚔</td><td data-ru="Атака X" data-de="Angriff X">Атака X</td><td data-ru="Нанесите X урона и вытяните модификатор атаки." data-de="Füge X Schaden zu und ziehe einen Angriffsmodifikator.">Нанесите X урона и вытяните модификатор атаки.</td></tr>
+          <tr><td>🦶</td><td data-ru="Движение X" data-de="Bewegung X">Движение X</td><td data-ru="Переместитесь до X клеток. Без Прыжка нельзя проходить через врагов и препятствия." data-de="Bewege dich bis zu X Felder. Ohne Sprung nicht durch Gegner oder Hindernisse.">Переместитесь до X клеток. Без Прыжка нельзя проходить через врагов и препятствия.</td></tr>
+          <tr><td>📏</td><td data-ru="Дальность X" data-de="Reichweite X">Дальность X</td><td data-ru="Максимальная дальность способности в клетках." data-de="Maximale Reichweite der Fähigkeit in Feldern.">Максимальная дальность способности в клетках.</td></tr>
+          <tr><td>🎯</td><td data-ru="Цели X" data-de="Ziele X">Цели X</td><td data-ru="Столько отдельных целей может выбрать способность." data-de="So viele getrennte Ziele darf die Fähigkeit wählen.">Столько отдельных целей может выбрать способность.</td></tr>
+          <tr><td>♥</td><td data-ru="Лечение X" data-de="Heilung X">Лечение X</td><td data-ru="Восстановите до X ОЗ. Лечение также снимает Отравление и Рану." data-de="Stelle bis zu X LP wieder her. Heilung entfernt auch Gift und Wunde.">Восстановите до X ОЗ. Лечение также снимает Отравление и Рану.</td></tr>
+          <tr><td>🪙</td><td data-ru="Добыча X" data-de="Plündern X">Добыча X</td><td data-ru="Подберите монеты и жетоны в радиусе X." data-de="Sammle Münzen und Marker in Reichweite X ein.">Подберите монеты и жетоны в радиусе X.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="💀 Статусы" data-de="💀 Zustände">💀 Статусы</h3>
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th data-ru="Статус" data-de="Zustand">Статус</th>
+            <th data-ru="Эффект" data-de="Effekt">Эффект</th>
+            <th data-ru="Снимается" data-de="Entfernt durch">Снимается</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>☠</td><td data-ru="Отравление" data-de="Gift">Отравление</td><td data-ru="Все входящие атаки по цели получают +1." data-de="Alle eingehenden Angriffe gegen das Ziel erhalten +1.">Все входящие атаки по цели получают +1.</td><td data-ru="Любое лечение" data-de="Beliebige Heilung">Любое лечение</td></tr>
+          <tr><td>🩸</td><td data-ru="Рана" data-de="Wunde">Рана</td><td data-ru="1 урон в начале каждого своего хода." data-de="1 Schaden zu Beginn jedes eigenen Zuges.">1 урон в начале каждого своего хода.</td><td data-ru="Любое лечение" data-de="Beliebige Heilung">Любое лечение</td></tr>
+          <tr><td>💤</td><td data-ru="Оглушение" data-de="Betäubung">Оглушение</td><td data-ru="Нельзя выполнять действия; ход обычно пропускается." data-de="Keine Aktionen möglich; der Zug fällt normalerweise aus.">Нельзя выполнять действия; ход обычно пропускается.</td><td data-ru="После следующего хода" data-de="Nach dem nächsten Zug">После следующего хода</td></tr>
+          <tr><td>🚫</td><td data-ru="Разоружение" data-de="Entwaffnen">Разоружение</td><td data-ru="Нельзя выполнять атаки." data-de="Es dürfen keine Angriffe ausgeführt werden.">Нельзя выполнять атаки.</td><td data-ru="После следующего хода" data-de="Nach dem nächsten Zug">После следующего хода</td></tr>
+          <tr><td>❓</td><td data-ru="Смятение" data-de="Verwirrung">Смятение</td><td data-ru="Все атаки выполняются с помехой." data-de="Alle Angriffe werden mit Nachteil ausgeführt.">Все атаки выполняются с помехой.</td><td data-ru="После следующего хода" data-de="Nach dem nächsten Zug">После следующего хода</td></tr>
+          <tr><td>⬆</td><td data-ru="Усиление" data-de="Stärkung">Усиление</td><td data-ru="Все атаки выполняются с преимуществом." data-de="Alle Angriffe werden mit Vorteil ausgeführt.">Все атаки выполняются с преимуществом.</td><td data-ru="После следующего хода" data-de="Nach dem nächsten Zug">После следующего хода</td></tr>
+          <tr><td>🛡</td><td data-ru="Щит X" data-de="Schild X">Щит X</td><td data-ru="Уменьшает входящий урон от атак на X." data-de="Reduziert eingehenden Angriffsschaden um X.">Уменьшает входящий урон от атак на X.</td><td data-ru="Пока активен эффект" data-de="Solange der Effekt aktiv ist">Пока активен эффект</td></tr>
+          <tr><td>🔶</td><td data-ru="Благословение" data-de="Segen">Благословение</td><td data-ru="Замешайте карту ×2 в колоду модификаторов." data-de="Mische eine ×2-Karte in das Modifikatordeck.">Замешайте карту ×2 в колоду модификаторов.</td><td data-ru="Когда карта вытянута" data-de="Wenn die Karte gezogen wird">Когда карта вытянута</td></tr>
+          <tr><td>🔻</td><td data-ru="Проклятие" data-de="Fluch">Проклятие</td><td data-ru="Замешайте карту Промах в колоду модификаторов." data-de="Mische eine Null-/Fehlschlagkarte in das Modifikatordeck.">Замешайте карту Промах в колоду модификаторов.</td><td data-ru="Когда карта вытянута" data-de="Wenn die Karte gezogen wird">Когда карта вытянута</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="🦘 Движение и позиция" data-de="🦘 Bewegung und Position">🦘 Движение и позиция</h3>
+      <table class="rules-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th data-ru="Термин" data-de="Begriff">Термин</th>
+            <th data-ru="Как работает" data-de="Funktionsweise">Как работает</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>🦘</td><td data-ru="Прыжок" data-de="Sprung">Прыжок</td><td data-ru="Игнорирует фигуры и препятствия во время движения, но приземляться на занятую клетку нельзя." data-de="Ignoriert Figuren und Hindernisse während der Bewegung, aber nicht auf besetzten Feldern landen.">Игнорирует фигуры и препятствия во время движения, но приземляться на занятую клетку нельзя.</td></tr>
+          <tr><td>➡</td><td data-ru="Оттолкнуть X" data-de="Stoßen X">Оттолкнуть X</td><td data-ru="Цель отходит от атакующего на X клеток." data-de="Das Ziel wird vom Angreifer weg um X Felder bewegt.">Цель отходит от атакующего на X клеток.</td></tr>
+          <tr><td>⬅</td><td data-ru="Притянуть X" data-de="Ziehen X">Притянуть X</td><td data-ru="Цель перемещается к атакующему на X клеток." data-de="Das Ziel wird um X Felder zum Angreifer hin bewegt.">Цель перемещается к атакующему на X клеток.</td></tr>
+          <tr><td>🚪</td><td data-ru="Дверь" data-de="Tür">Дверь</td><td data-ru="Когда герой открывает дверь, раскрывается новая комната и в неё ставятся враги." data-de="Wenn ein Held eine Tür öffnet, wird ein neuer Raum aufgedeckt und Gegner werden eingesetzt.">Когда герой открывает дверь, раскрывается новая комната и в неё ставятся враги.</td></tr>
+          <tr><td>🪨</td><td data-ru="Препятствие" data-de="Hindernis">Препятствие</td><td data-ru="Через него нельзя пройти, если нет специального эффекта." data-de="Kann ohne Sondereffekt nicht betreten oder durchquert werden.">Через него нельзя пройти, если нет специального эффекта.</td></tr>
+          <tr><td>⚠</td><td data-ru="Ловушка" data-de="Falle">Ловушка</td><td data-ru="При входе немедленно срабатывает. Монстры избегают ловушек, если могут." data-de="Wird beim Betreten sofort ausgelöst. Monster vermeiden Fallen, wenn möglich.">При входе немедленно срабатывает. Монстры избегают ловушек, если могут.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="🃏 Карты и отдых" data-de="🃏 Karten und Rasten">🃏 Карты и отдых</h3>
+      <div class="rules-prose">
+        <ul class="rules-bullets">
+          <li><span data-ru="Каждый раунд выберите 2 карты: верх одной и низ другой." data-de="Wähle jede Runde 2 Karten: obere Hälfte der einen und untere Hälfte der anderen.">Каждый раунд выберите 2 карты: верх одной и низ другой.</span></li>
+          <li><span data-ru="Если половина карты не используется, можно выполнить базовое действие: ⚔ 2 сверху или 🦶 2 снизу." data-de="Wird eine Kartenhälfte nicht genutzt, darf die Grundaktion ausgeführt werden: ⚔ 2 oben oder 🦶 2 unten.">Если половина карты не используется, можно выполнить базовое действие: ⚔ 2 сверху или 🦶 2 снизу.</span></li>
+          <li><span data-ru="✖ Потеря: карта уходит в потери и обычно недоступна до конца сценария." data-de="✖ Verlust: Die Karte kommt in den Verluststapel und ist normalerweise bis zum Szenarioende weg.">✖ Потеря: карта уходит в потери и обычно недоступна до конца сценария.</span></li>
+          <li><span data-ru="○ Сброс: карта уходит в сброс и возвращается во время отдыха." data-de="○ Ablage: Die Karte kommt auf den Ablagestapel und kehrt beim Rasten zurück.">○ Сброс: карта уходит в сброс и возвращается во время отдыха.</span></li>
+          <li><span data-ru="Короткий отдых: случайная карта из сброса теряется; можно 1 раз получить 1 урон и перевытянуть." data-de="Kurze Rast: Eine zufällige Karte aus der Ablage geht verloren; einmal darf 1 Schaden genommen und neu gezogen werden.">Короткий отдых: случайная карта из сброса теряется; можно 1 раз получить 1 урон и перевытянуть.</span></li>
+          <li><span data-ru="Долгий отдых: весь ход уходит на отдых; затем восстановите все карты сброса кроме одной потерянной и вылечите 2." data-de="Lange Rast: Der ganze Zug wird fürs Rasten genutzt; danach nimmst du alle Ablagekarten bis auf eine verlorene zurück und heilst 2.">Долгий отдых: весь ход уходит на отдых; затем восстановите все карты сброса кроме одной потерянной и вылечите 2.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="🔥 Стихии" data-de="🔥 Elemente">🔥 Стихии</h3>
+      <div class="element-grid">
+        <div class="element-pill"><span class="icon">🔥</span><div class="names" data-ru="Огонь" data-de="Feuer">Огонь</div></div>
+        <div class="element-pill"><span class="icon">❄</span><div class="names" data-ru="Лёд" data-de="Eis">Лёд</div></div>
+        <div class="element-pill"><span class="icon">💨</span><div class="names" data-ru="Воздух" data-de="Luft">Воздух</div></div>
+        <div class="element-pill"><span class="icon">🌍</span><div class="names" data-ru="Земля" data-de="Erde">Земля</div></div>
+        <div class="element-pill"><span class="icon">☀</span><div class="names" data-ru="Свет" data-de="Licht">Свет</div></div>
+        <div class="element-pill"><span class="icon">🌑</span><div class="names" data-ru="Тьма" data-de="Dunkelheit">Тьма</div></div>
+      </div>
+      <div class="rules-prose">
+        <ul class="rules-bullets">
+          <li><span data-ru="Обычная иконка стихии создаёт элемент." data-de="Ein normales Elementsymbol erzeugt ein Element.">Обычная иконка стихии создаёт элемент.</span></li>
+          <li><span data-ru="Перечёркнутая иконка тратит сильную стихию ради бонуса." data-de="Ein durchgestrichenes Elementsymbol verbraucht ein starkes Element für einen Bonus.">Перечёркнутая иконка тратит сильную стихию ради бонуса.</span></li>
+          <li><span data-ru="В конце раунда сильная стихия становится слабой, слабая исчезает." data-de="Am Rundenende wird ein starkes Element schwach, ein schwaches verschwindet.">В конце раунда сильная стихия становится слабой, слабая исчезает.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="🔄 Ход раунда" data-de="🔄 Rundenablauf">🔄 Ход раунда</h3>
+      <ol class="phase-list">
+        <li><span class="phase-num">1</span><div><div class="phase-name" data-ru="Выбрать 2 карты" data-de="2 Karten wählen">Выбрать 2 карты</div><div class="phase-sub" data-ru="Все игроки выбирают карты скрытно." data-de="Alle Spieler wählen ihre Karten verdeckt.">Все игроки выбирают карты скрытно.</div></div></li>
+        <li><span class="phase-num">2</span><div><div class="phase-name" data-ru="Определить инициативу" data-de="Initiative bestimmen">Определить инициативу</div><div class="phase-sub" data-ru="Смотрите значение инициативы на выбранных картах." data-de="Die Initiative ergibt sich aus den gewählten Karten.">Смотрите значение инициативы на выбранных картах.</div></div></li>
+        <li><span class="phase-num">3</span><div><div class="phase-name" data-ru="Разыграть ходы" data-de="Züge ausführen">Разыграть ходы</div><div class="phase-sub" data-ru="Все фигуры действуют от меньшей инициативы к большей." data-de="Alle Figuren handeln von niedriger zu hoher Initiative.">Все фигуры действуют от меньшей инициативы к большей.</div></div></li>
+        <li><span class="phase-num">4</span><div><div class="phase-name" data-ru="Конец раунда" data-de="Rundenende">Конец раунда</div><div class="phase-sub" data-ru="Обновите эффекты, стихии и предметы с обновлением." data-de="Aktualisiere Effekte, Elemente und auffrischende Gegenstände.">Обновите эффекты, стихии и предметы с обновлением.</div></div></li>
+      </ol>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="🃏 Колода модификаторов атаки" data-de="🃏 Angriffsmodifikatoren">🃏 Колода модификаторов атаки</h3>
+      <div class="modifier-deck">
+        <strong data-ru="База:" data-de="Grunddeck:">База:</strong>
+        <span data-ru="в каждой атаке тянется 1 карта модификатора." data-de="Bei jedem Angriff wird 1 Modifikatorkarte gezogen.">в каждой атаке тянется 1 карта модификатора.</span>
+        <br><br>
+        <span data-ru="×2 = критический удар, 0 = промах." data-de="×2 = kritischer Treffer, 0 = Fehlschlag.">×2 = критический удар, 0 = промах.</span>
+        <br>
+        <span data-ru="+1 / −1 / +2 / −2 меняют урон на указанное значение." data-de="+1 / −1 / +2 / −2 verändern den Schaden entsprechend.">+1 / −1 / +2 / −2 меняют урон на указанное значение.</span>
+        <br>
+        <span data-ru="Благословение добавляет ×2, Проклятие добавляет 0." data-de="Segen fügt ×2 hinzu, Fluch fügt 0 hinzu.">Благословение добавляет ×2, Проклятие добавляет 0.</span>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="┄ На картах способностей" data-de="┄ Auf Fähigkeitskarten">┄ На картах способностей</h3>
+      <div class="rules-prose">
+        <ul class="rules-bullets">
+          <li><span data-ru="Пунктирная линия на одной половине карты означает, что эффекты связаны и выполняются по порядку." data-de="Eine gepunktete Linie auf derselben Kartenhälfte bedeutet, dass die Effekte zusammengehören und der Reihe nach ausgeführt werden.">Пунктирная линия на одной половине карты означает, что эффекты связаны и выполняются по порядку.</span></li>
+          <li><span data-ru="Если второй эффект зависит от первого, нельзя перескочить сразу ко второму." data-de="Wenn der zweite Effekt vom ersten abhängt, kann nicht direkt mit dem zweiten begonnen werden.">Если второй эффект зависит от первого, нельзя перескочить сразу ко второму.</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="rules-section">
+      <h3 data-ru="📄 Оригинальные PDF" data-de="📄 Original-PDFs">📄 Оригинальные PDF</h3>
+      <div class="pdf-links">
+        <a class="pdf-btn pdf-lang-ru" href="assets/pdf/rules_ru.pdf" target="_blank">
+          <span>📖</span>
+          <span>Правила игры</span>
+        </a>
+        <a class="pdf-btn pdf-lang-ru" href="assets/pdf/glossary_ru.pdf" target="_blank">
+          <span>📚</span>
+          <span>Справочник</span>
+        </a>
+        <a class="pdf-btn pdf-lang-de hidden" href="assets/pdf/rules_de.pdf" target="_blank">
+          <span>📖</span>
+          <span>Spielregeln</span>
+        </a>
+        <a class="pdf-btn pdf-lang-de hidden" href="assets/pdf/glossary_de.pdf" target="_blank">
+          <span>📚</span>
+          <span>Glossar</span>
+        </a>
+      </div>
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 6: MISSIONS
+
+  ══════════════════════════════════ -->
+
+  <section id="tab-missions" class="tab-panel">
+
+    <h2 class="section-title" id="missions-title">📖 Миссии</h2>
+
+
+
+    <div class="mission-selector-bar">
+
+      <select id="mission-select" onchange="renderMissionTab()"></select>
+
+    </div>
+
+
+
+    <div id="mission-content" class="mission-content hidden">
+
+      <h3 class="mission-block-title" id="mission-task-label">Задача</h3>
+
+      <div class="mission-task-badge" id="mission-task"></div>
+
+
+
+      <div class="mission-block">
+
+        <h3 class="mission-block-title" id="mission-intro-label">Вступление</h3>
+
+        <p class="mission-text" id="mission-intro"></p>
+
+      </div>
+
+
+
+      <div class="mission-block" id="mission-rules-block">
+
+        <h3 class="mission-block-title" id="mission-rules-label">Особые правила</h3>
+
+        <p class="mission-text" id="mission-rules"></p>
+
+      </div>
+
+
+
+      <div class="mission-block" id="mission-triggers-block">
+
+        <h3 class="mission-block-title" id="mission-triggers-label">Тригеры</h3>
+
+        <div id="mission-triggers-list"></div>
+
+      </div>
+
+
+
+      <div class="mission-block">
+
+        <h3 class="mission-block-title" id="mission-conclusion-label">Развязка</h3>
+
+        <p class="mission-text" id="mission-conclusion"></p>
+
+      </div>
+
+
+
+      <h3 class="mission-block-title" id="mission-reward-label">Награда</h3>
+
+      <div class="mission-reward-badge" id="mission-reward"></div>
+
+    </div>
+
+  </section>
+
+
+
+
+  <!-- ══════════════════════════════════
+       TAB 7: HELPER (Quick Ref / Glossary / FAQ)
+  ══════════════════════════════════ -->
+  <section id="tab-helper" class="tab-panel">
+    <h2 class="section-title" id="helper-title">📚 Справочник</h2>
+    <div id="helper-inner-tabs" class="helper-inner-tabs"></div>
+    <div id="helper-content" class="helper-content"></div>
+  </section>
+
+</main>
+
+
+
+<!-- ─── Card Modal ─── -->
+
+<div id="card-modal" onclick="closeCardModal(event)">
+
+  <div id="card-modal-inner">
+
+    <button class="btn-close-modal" onclick="closeCardModalDirect()">✕</button>
+
+    <div id="card-modal-img-wrap">
+
+      <img id="card-modal-img" src="" alt="" onclick="openImgLightbox(this.src)">
+
+      <div id="card-modal-frame"></div>
+
+    </div>
+
+    <div id="card-modal-body">
+
+      <div id="card-modal-title"></div>
+
+      <div id="card-modal-meta"></div>
+
+      <div id="card-modal-lost-warn" class="hidden"></div>
+
+      <div id="card-modal-desc"></div>
+
+      <div class="modal-actions">
+
+        <button class="btn-primary" id="card-modal-deck-btn" onclick="toggleCardInDeck()">+ В колоду</button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ─── Image Lightbox ─── -->
+<div id="img-lightbox" onclick="closeImgLightbox()">
+  <button id="img-lightbox-close" onclick="closeImgLightbox()">✕</button>
+  <img id="img-lightbox-img" src="" alt="">
+</div>
+
+
+
+<!-- ══════════════════════════════════════════════════
+
+     JAVASCRIPT
+
+══════════════════════════════════════════════════ -->
+
+<script src="js/missions.js"></script>
+
+<script src="js/items.js"></script>
+
+<script src="js/utils.js"></script>
+
+<script src="js/data.js"></script>
+
+<script src="js/lang.js"></script>
+
+<script src="js/heroes.js"></script>
+
+<script src="js/events.js"></script>
+
+<script src="js/goals.js"></script>
+
+<script src="js/shop.js"></script>
+
+<script src="js/missions-ui.js"></script>
+
+<script src="js/helper-data.js"></script>
+
+<script src="js/helper.js"></script>
+
+<script src="js/rules.js"></script>
+
+<script src="js/tabs.js"></script>
+
+</body>
+
+</html>
+
