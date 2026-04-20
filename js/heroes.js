@@ -40,6 +40,13 @@ function getDeckMax(code) {
 
 function selectChar(code) {
 
+  // In session: block if taken by another player
+  if (sessionCode) {
+    const owner = getHeroOwner(code);
+    if (owner && owner.id !== playerId) return;
+    sessionClaimHero(code);
+  }
+
   activeChar = code;
 
   lsSet('activeChar', code);

@@ -54,7 +54,22 @@
 
 </header>
 
-
+<!-- ─── Session Bar ─── -->
+<div id="session-bar">
+  <div id="sb-disconnected">
+    <span id="sb-label-session">Сессия:</span>
+    <input id="sb-code-input" class="sb-code-input" maxlength="4" placeholder="Код" oninput="this.value=this.value.toUpperCase()">
+    <button id="sb-join-btn" class="sb-btn" onclick="joinSessionFromInput()">Войти</button>
+    <span class="sb-sep">|</span>
+    <button id="sb-create-btn" class="sb-btn" onclick="createSession()">+ Новая</button>
+  </div>
+  <div id="sb-connected" class="hidden">
+    <span class="sb-code-badge" id="sb-code-display"></span>
+    <input id="sb-name-input" class="sb-name-input" maxlength="14" placeholder="Имя">
+    <div id="sb-players-list"></div>
+    <button id="sb-leave-btn" class="sb-btn sb-leave" onclick="leaveSession()" title="Выйти">✕</button>
+  </div>
+</div>
 
 <!-- ─── Tab Navigation ─── -->
 
@@ -409,21 +424,6 @@
 
       <!-- Draw mode -->
       <div id="goals-draw-section" class="hidden">
-
-        <!-- Session panel -->
-        <div id="session-panel">
-          <div id="session-connected" class="hidden">
-            <span id="session-label-code">Сессия:</span>
-            <strong id="session-code-display"></strong>
-            <button class="btn-secondary session-btn" id="session-leave-btn" onclick="leaveSession()">Выйти</button>
-          </div>
-          <div id="session-disconnected">
-            <button class="btn-secondary session-btn" id="session-create-btn" onclick="createSession()">+ Создать сессию</button>
-            <span class="session-or" id="session-or-label">или</span>
-            <input id="session-code-input" class="session-code-input" placeholder="Код" maxlength="4">
-            <button class="btn-secondary session-btn" id="session-join-btn" onclick="joinSessionFromInput()">Войти</button>
-          </div>
-        </div>
 
         <div id="goals-draw-setup">
 

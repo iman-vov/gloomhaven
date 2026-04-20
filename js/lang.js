@@ -122,11 +122,7 @@ function setLang(l) {
   if (drawPlayersLabel) drawPlayersLabel.textContent = l === 'de' ? 'Spieler:' : 'Игроков:';
   if (drawState) renderDrawResults();
 
-  const sessionLabelCode = document.getElementById('session-label-code');
-  if (sessionLabelCode) sessionLabelCode.textContent = l === 'de' ? 'Sitzung:' : 'Сессия:';
-  const sessionOrLabel = document.getElementById('session-or-label');
-  if (sessionOrLabel) sessionOrLabel.textContent = l === 'de' ? 'oder' : 'или';
-  updateSessionUI();
+  updateSessionBar();
 
   updateRulesLang(l);
   updateHelperLang();
