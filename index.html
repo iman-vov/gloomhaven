@@ -809,7 +809,11 @@
 
       <div class="modal-actions">
 
+        <button class="modal-nav-btn" id="card-nav-prev" onclick="event.stopPropagation(); navigateCardModal(-1)">&#8249;</button>
+
         <button class="btn-primary" id="card-modal-deck-btn" onclick="toggleCardInDeck()">+ В колоду</button>
+
+        <button class="modal-nav-btn" id="card-nav-next" onclick="event.stopPropagation(); navigateCardModal(1)">&#8250;</button>
 
       </div>
 

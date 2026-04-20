@@ -64,7 +64,7 @@ function selectChar(code) {
 
   document.getElementById(`charcard-${code}`).classList.add('selected');
 
-  activeCardFilter = 'all';
+  activeCardFilter = new Set();
 
   cardsView = 'all';
 
@@ -131,25 +131,30 @@ function renderLevelFilter() {
 
   div.innerHTML = '';
 
-  const allBtn = document.createElement('button');
+  const resetBtn = document.createElement('button');
 
-  allBtn.className = 'lvl-btn' + (activeCardFilter === 'all' ? ' active' : '');
+  resetBtn.className = 'lvl-btn lvl-btn-reset' + (activeCardFilter.size === 0 ? ' active' : '');
 
-  allBtn.textContent = lang === 'de' ? 'Alle' : 'Все';
+  resetBtn.textContent = lang === 'de' ? 'Alle' : 'Все';
 
-  allBtn.onclick = () => { activeCardFilter = 'all'; renderLevelFilter(); renderCardsGrid(); };
+  resetBtn.onclick = () => { activeCardFilter = new Set(); renderLevelFilter(); renderCardsGrid(); };
 
-  div.appendChild(allBtn);
+  div.appendChild(resetBtn);
 
   LEVEL_ORDER.filter(l => levels.has(l)).forEach(lvl => {
 
     const btn = document.createElement('button');
 
-    btn.className = 'lvl-btn' + (activeCardFilter === lvl ? ' active' : '');
+    btn.className = 'lvl-btn' + (activeCardFilter.has(lvl) ? ' active' : '');
 
     btn.textContent = lvl === '1' ? (lang==='de'?'Lvl.1':'Ур.1') : lvl;
 
-    btn.onclick = () => { activeCardFilter = lvl; renderLevelFilter(); renderCardsGrid(); };
+    btn.onclick = () => {
+      if (activeCardFilter.has(lvl)) activeCardFilter.delete(lvl);
+      else activeCardFilter.add(lvl);
+      renderLevelFilter();
+      renderCardsGrid();
+    };
 
     div.appendChild(btn);
 
@@ -165,7 +170,7 @@ function getFilteredCards() {
 
   const cards = CHARS[activeChar].cards;
 
-  return activeCardFilter === 'all' ? cards : cards.filter(c => c.level === activeCardFilter);
+  return activeCardFilter.size === 0 ? cards : cards.filter(c => activeCardFilter.has(c.level));
 
 }
 
@@ -405,9 +410,19 @@ function openCardModal(card) {
 
   document.getElementById('card-modal').classList.add('open');
 
+  const cards = getFilteredCards();
+  const idx = cards.findIndex(c => c.id === card.id);
+  document.getElementById('card-nav-prev').disabled = idx <= 0;
+  document.getElementById('card-nav-next').disabled = idx >= cards.length - 1;
+
 }
 
-
+function navigateCardModal(delta) {
+  const cards = getFilteredCards();
+  const idx = cards.findIndex(c => c.id === openCardId);
+  const next = cards[idx + delta];
+  if (next) openCardModal(next);
+}
 
 function closeCardModal(e) { if (e.target===document.getElementById('card-modal')) closeCardModalDirect(); }
 
