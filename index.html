@@ -38,6 +38,21 @@
 
   <h1 id="game-title">Мрачная гавань. Челюсти Льва</h1>
 
+  <!-- Session (desktop only) -->
+  <div id="session-bar-desktop">
+    <div id="sb-d-disconnected">
+      <input id="sb-code-input" class="sb-code-input" maxlength="4" placeholder="Код" oninput="this.value=this.value.toUpperCase()">
+      <button id="sb-join-btn" class="sb-btn" onclick="joinSessionFromInput()">Войти</button>
+      <button id="sb-create-btn" class="sb-btn sb-btn-new" onclick="createSession()">+ Новая</button>
+    </div>
+    <div id="sb-d-connected" class="hidden">
+      <span class="sb-code-badge" id="sb-code-display"></span>
+      <input id="sb-name-input" class="sb-name-input" maxlength="14" placeholder="Имя">
+      <div id="sb-players-list"></div>
+      <button id="sb-leave-btn" class="sb-btn sb-leave" onclick="leaveSession()" title="Выйти">✕</button>
+    </div>
+  </div>
+
   <div id="header-controls">
 
     <div id="lang-toggle">
@@ -53,23 +68,6 @@
   </div>
 
 </header>
-
-<!-- ─── Session Bar ─── -->
-<div id="session-bar">
-  <div id="sb-disconnected">
-    <span id="sb-label-session">Сессия:</span>
-    <input id="sb-code-input" class="sb-code-input" maxlength="4" placeholder="Код" oninput="this.value=this.value.toUpperCase()">
-    <button id="sb-join-btn" class="sb-btn" onclick="joinSessionFromInput()">Войти</button>
-    <span class="sb-sep">|</span>
-    <button id="sb-create-btn" class="sb-btn" onclick="createSession()">+ Новая</button>
-  </div>
-  <div id="sb-connected" class="hidden">
-    <span class="sb-code-badge" id="sb-code-display"></span>
-    <input id="sb-name-input" class="sb-name-input" maxlength="14" placeholder="Имя">
-    <div id="sb-players-list"></div>
-    <button id="sb-leave-btn" class="sb-btn sb-leave" onclick="leaveSession()" title="Выйти">✕</button>
-  </div>
-</div>
 
 <!-- ─── Tab Navigation ─── -->
 
@@ -90,6 +88,24 @@
   <button class="tab-btn" onclick="switchTab('helper')" id="tabbtn-helper">📚 Справочник</button>
 
   <button class="tab-btn" onclick="switchTab('rules')" id="tabbtn-rules">📋 Правила</button>
+
+  <!-- Session (mobile only, inside burger) -->
+  <div id="session-nav-mobile">
+    <div id="sb-m-disconnected">
+      <input id="sb-m-code-input" class="sb-m-code-input" maxlength="4" placeholder="Код" oninput="this.value=this.value.toUpperCase()">
+      <button class="sb-m-btn" onclick="joinSessionFromMobile()">Войти</button>
+      <button class="sb-m-btn sb-m-btn-new" onclick="createSession()">+ Создать сессию</button>
+    </div>
+    <div id="sb-m-connected" class="hidden">
+      <div class="sb-m-row">
+        <span id="sb-m-label">Сессия:</span>
+        <strong id="sb-m-code-display"></strong>
+        <button class="sb-m-btn sb-m-leave" onclick="leaveSession()">Выйти</button>
+      </div>
+      <input id="sb-m-name-input" class="sb-m-name-input" maxlength="14" placeholder="Ваше имя">
+      <div id="sb-m-players-list"></div>
+    </div>
+  </div>
 
 </nav>
 
@@ -891,11 +907,6 @@
 
 ══════════════════════════════════════════════════ -->
 
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="js/firebase-init.js"></script>
-<script src="js/session.js"></script>
-
 <script src="js/missions.js"></script>
 
 <script src="js/items.js"></script>
@@ -921,6 +932,11 @@
 <script src="js/helper.js"></script>
 
 <script src="js/rules.js"></script>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/firebase-init.js"></script>
+<script src="js/session.js"></script>
 
 <script src="js/tabs.js"></script>
 

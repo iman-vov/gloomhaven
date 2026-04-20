@@ -1,9 +1,5 @@
 // ─── Player identity ───────────────────────────────────
-let playerId = lsGet('gh_player_id', null);
-if (!playerId) {
-  playerId = Math.random().toString(36).substr(2, 9);
-  lsSet('gh_player_id', playerId);
-}
+let playerId = null;
 
 let sessionCode = null;
 let sessionRef = null;
@@ -149,62 +145,108 @@ function updatePlayerName(name) {
 
 // ─── Session bar UI ────────────────────────────────────
 
+function joinSessionFromMobile() {
+  const input = document.getElementById('sb-m-code-input');
+  const code = (input ? input.value : '').toUpperCase().trim();
+  if (code.length !== 4) return;
+  _connectSession(code);
+  document.getElementById('tab-nav').classList.remove('mobile-open');
+}
+
+function _initNameInput(el) {
+  if (!el || el.dataset.initialized) return;
+  el.dataset.initialized = '1';
+  el.value = lsGet('gh_player_name', '') || '';
+  el.addEventListener('change', () => updatePlayerName(el.value));
+  el.addEventListener('blur', () => updatePlayerName(el.value));
+}
+
 function updateSessionBar() {
   const de = lang === 'de';
-  const barDisc = document.getElementById('sb-disconnected');
-  const barConn = document.getElementById('sb-connected');
-  if (!barDisc) return;
+  const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
 
-  // Update labels
-  const labelEl = document.getElementById('sb-label-session');
-  if (labelEl) labelEl.textContent = de ? 'Sitzung:' : 'Сессия:';
-  const joinBtn = document.getElementById('sb-join-btn');
-  if (joinBtn) joinBtn.textContent = de ? 'Beitreten' : 'Войти';
-  const createBtn = document.getElementById('sb-create-btn');
-  if (createBtn) createBtn.textContent = de ? '+ Neu' : '+ Новая';
-  const leaveBtn = document.getElementById('sb-leave-btn');
-  if (leaveBtn) leaveBtn.title = de ? 'Verlassen' : 'Выйти';
-  const codeInput = document.getElementById('sb-code-input');
-  if (codeInput) codeInput.placeholder = de ? 'Code' : 'Код';
+  // ── Desktop ──
+  const dDisc = document.getElementById('sb-d-disconnected');
+  const dConn = document.getElementById('sb-d-connected');
+  if (dDisc) {
+    const joinBtn = document.getElementById('sb-join-btn');
+    const createBtn = document.getElementById('sb-create-btn');
+    const codeInput = document.getElementById('sb-code-input');
+    const leaveBtn = document.getElementById('sb-leave-btn');
+    if (joinBtn) joinBtn.textContent = de ? 'Beitreten' : 'Войти';
+    if (createBtn) createBtn.textContent = de ? '+ Neu' : '+ Новая';
+    if (codeInput) codeInput.placeholder = de ? 'Code' : 'Код';
+    if (leaveBtn) leaveBtn.title = de ? 'Verlassen' : 'Выйти';
 
-  if (sessionCode) {
-    barDisc.classList.add('hidden');
-    barConn.classList.remove('hidden');
-
-    document.getElementById('sb-code-display').textContent = sessionCode;
-
-    // Name input
-    const nameInput = document.getElementById('sb-name-input');
-    if (nameInput) {
-      nameInput.placeholder = de ? 'Name' : 'Имя';
-      if (!nameInput.dataset.initialized) {
-        nameInput.dataset.initialized = '1';
-        nameInput.value = lsGet('gh_player_name', '') || '';
-        nameInput.addEventListener('change', () => updatePlayerName(nameInput.value));
-        nameInput.addEventListener('blur', () => updatePlayerName(nameInput.value));
+    if (sessionCode) {
+      dDisc.classList.add('hidden');
+      dConn.classList.remove('hidden');
+      document.getElementById('sb-code-display').textContent = sessionCode;
+      _initNameInput(document.getElementById('sb-name-input'));
+      const list = document.getElementById('sb-players-list');
+      if (list) {
+        list.innerHTML = '';
+        Object.entries(sessionPlayers).forEach(([pid, p]) => {
+          const chip = document.createElement('div');
+          chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
+          chip.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
+          list.appendChild(chip);
+        });
       }
+    } else {
+      dDisc.classList.remove('hidden');
+      dConn.classList.add('hidden');
     }
+  }
 
-    // Players list
-    const list = document.getElementById('sb-players-list');
-    if (list) {
-      list.innerHTML = '';
-      const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
-      Object.entries(sessionPlayers).forEach(([pid, p]) => {
-        const chip = document.createElement('div');
-        chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
-        const icon = p.hero ? heroIcons[p.hero] : '❓';
-        chip.textContent = `${icon} ${p.name || '?'}`;
-        list.appendChild(chip);
-      });
+  // ── Mobile ──
+  const mDisc = document.getElementById('sb-m-disconnected');
+  const mConn = document.getElementById('sb-m-connected');
+  if (mDisc) {
+    const mJoinBtn = mDisc.querySelector('.sb-m-btn:not(.sb-m-btn-new)');
+    const mCreateBtn = mDisc.querySelector('.sb-m-btn-new');
+    const mCodeInput = document.getElementById('sb-m-code-input');
+    const mLeaveBtn = document.querySelector('.sb-m-leave');
+    const mLabel = document.getElementById('sb-m-label');
+    if (mJoinBtn) mJoinBtn.textContent = de ? 'Beitreten' : 'Войти';
+    if (mCreateBtn) mCreateBtn.textContent = de ? '+ Sitzung erstellen' : '+ Создать сессию';
+    if (mCodeInput) mCodeInput.placeholder = de ? 'Code' : 'Код';
+    if (mLeaveBtn) mLeaveBtn.textContent = de ? 'Verlassen' : 'Выйти';
+    if (mLabel) mLabel.textContent = de ? 'Sitzung:' : 'Сессия:';
+
+    if (sessionCode) {
+      mDisc.classList.add('hidden');
+      mConn.classList.remove('hidden');
+      const mCodeDisplay = document.getElementById('sb-m-code-display');
+      if (mCodeDisplay) mCodeDisplay.textContent = sessionCode;
+      const mNameInput = document.getElementById('sb-m-name-input');
+      if (mNameInput) {
+        mNameInput.placeholder = de ? 'Name' : 'Ваше имя';
+        _initNameInput(mNameInput);
+      }
+      const mList = document.getElementById('sb-m-players-list');
+      if (mList) {
+        mList.innerHTML = '';
+        Object.entries(sessionPlayers).forEach(([pid, p]) => {
+          const chip = document.createElement('div');
+          chip.className = 'sb-m-player-chip' + (pid === playerId ? ' sb-me' : '');
+          chip.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
+          mList.appendChild(chip);
+        });
+      }
+    } else {
+      mDisc.classList.remove('hidden');
+      mConn.classList.add('hidden');
     }
-  } else {
-    barDisc.classList.remove('hidden');
-    barConn.classList.add('hidden');
   }
 }
 
 function initSession() {
+  playerId = lsGet('gh_player_id', null);
+  if (!playerId) {
+    playerId = Math.random().toString(36).substr(2, 9);
+    lsSet('gh_player_id', playerId);
+  }
   const saved = lsGet('gh_session', null);
   if (saved) _connectSession(saved);
   else updateSessionBar();
