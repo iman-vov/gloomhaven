@@ -215,7 +215,7 @@ function renderCardsGrid() {
 
     el.innerHTML = `
 
-      <img src="./assets/cards/${card.code}/${card.id}.png" alt="${card.id}"
+      <img src="./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${card.code}/${card.id}.png" alt="${card.id}"
 
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
 
@@ -287,7 +287,7 @@ function renderDeckGrid() {
 
     el.innerHTML = `
 
-      <img src="./assets/cards/${card.code}/${card.id}.png" alt="${id}"
+      <img src="./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${card.code}/${card.id}.png" alt="${id}"
 
         onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
 
@@ -343,7 +343,7 @@ function openCardModal(card) {
 
 
 
-  document.getElementById('card-modal-img').src = `./assets/cards/${card.code}/${card.id}.png`;
+  document.getElementById('card-modal-img').src = `./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${card.code}/${card.id}.png`;
 
   document.getElementById('card-modal-frame').style.backgroundImage = `url('./assets/ui/card-bg-${card.code.toLowerCase()}.png')`;
 
