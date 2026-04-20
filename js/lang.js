@@ -111,15 +111,15 @@ function setLang(l) {
   if (goalSel && goalSel.value) displayGoal(parseInt(goalSel.value));
 
   const goalModeBtnManual = document.getElementById('goal-mode-btn-manual');
-  if (goalModeBtnManual) goalModeBtnManual.textContent = l === 'de' ? '📖 Manuell' : '📖 Вручну';
+  if (goalModeBtnManual) goalModeBtnManual.textContent = l === 'de' ? '📖 Manuell' : '📖 Вручную';
   const goalModeBtnDraw = document.getElementById('goal-mode-btn-draw');
-  if (goalModeBtnDraw) goalModeBtnDraw.textContent = l === 'de' ? '🎲 Auslosung' : '🎲 Жеребкування';
+  if (goalModeBtnDraw) goalModeBtnDraw.textContent = l === 'de' ? '🎲 Auslosung' : '🎲 Жеребьёвка';
   const drawStartBtn = document.getElementById('draw-start-btn');
-  if (drawStartBtn) drawStartBtn.textContent = l === 'de' ? '🎲 Auslosen' : '🎲 Розіграти';
+  if (drawStartBtn) drawStartBtn.textContent = l === 'de' ? '🎲 Auslosen' : '🎲 Разыграть';
   const drawResetBtn = document.getElementById('draw-reset-btn');
-  if (drawResetBtn) drawResetBtn.textContent = l === 'de' ? '↺ Neue Runde' : '↺ Новий сеанс';
+  if (drawResetBtn) drawResetBtn.textContent = l === 'de' ? '↺ Neue Runde' : '↺ Новый сеанс';
   const drawPlayersLabel = document.getElementById('draw-players-label');
-  if (drawPlayersLabel) drawPlayersLabel.textContent = l === 'de' ? 'Spieler:' : 'Гравців:';
+  if (drawPlayersLabel) drawPlayersLabel.textContent = l === 'de' ? 'Spieler:' : 'Игроков:';
   if (drawState) renderDrawResults();
 
   updateRulesLang(l);

@@ -74,7 +74,7 @@ function renderDrawResults() {
 
     const header = document.createElement('div');
     header.className = 'draw-player-header';
-    header.textContent = de ? `Spieler ${idx + 1}` : `Гравець ${idx + 1}`;
+    header.textContent = de ? `Spieler ${idx + 1}` : `Игрок ${idx + 1}`;
     section.appendChild(header);
 
     if (player.picked !== null) {
@@ -100,7 +100,7 @@ function renderDrawResults() {
           <div class="draw-goal-num">#${g.id}</div>
           <div class="draw-goal-name">${de && g.nameDe ? g.nameDe : g.nameRu}</div>
           <div class="draw-goal-cond">${de && g.conditionDe ? g.conditionDe : g.conditionRu}</div>
-          <button class="btn-primary draw-pick-btn">${de ? 'Wählen' : 'Обрати'}</button>`;
+          <button class="btn-primary draw-pick-btn">${de ? 'Wählen' : 'Выбрать'}</button>`;
         card.querySelector('.draw-pick-btn').onclick = () => pickGoal(idx, gid);
         opts.appendChild(card);
       });
