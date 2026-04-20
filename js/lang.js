@@ -60,8 +60,8 @@ function setLang(l) {
   document.title = l === 'de' ? 'Gloomhaven: Die Pranken des Löwen' : 'Gloomhaven: Челюсти Льва';
 
   const sectionTitles = {
-    ru: { heroes: '🃏 Карты Героев', events: '🏙 Городские события', goals: '⚔ Боевые задания', shop: '🛒 Магазин', rules: '📋 Памятка по правилам', missions: '📖 Миссии' },
-    de: { heroes: '🃏 Heldenkarten', events: '🏙 Stadtereignisse', goals: '⚔ Kampfaufgaben', shop: '🛒 Laden', rules: '📋 Regelübersicht', missions: '📖 Szenarien' }
+    ru: { heroes: '🃏 Карты Героев', events: '🏙 Городские события', goals: '⚔ Боевые задания', shop: '🛒 Магазин', rules: '📋 Памятка по правилам', missions: '📖 Миссии', helper: '📚 Справочник' },
+    de: { heroes: '🃏 Heldenkarten', events: '🏙 Stadtereignisse', goals: '⚔ Kampfaufgaben', shop: '🛒 Laden', rules: '📋 Regelübersicht', missions: '📖 Szenarien', helper: '📚 Handbuch' }
   };
   const t = sectionTitles[l];
   const heroesT = document.getElementById('heroes-title');
@@ -70,12 +70,14 @@ function setLang(l) {
   const shopT = document.getElementById('shop-title');
   const rulesT = document.getElementById('rules-title');
   const missionsT = document.getElementById('missions-title');
+  const helperT = document.getElementById('helper-title');
   if (heroesT) heroesT.textContent = t.heroes;
   if (eventsT) eventsT.textContent = t.events;
   if (goalsT) goalsT.textContent = t.goals;
   if (shopT) shopT.textContent = t.shop;
   if (rulesT) rulesT.textContent = t.rules;
   if (missionsT) missionsT.textContent = t.missions;
+  if (helperT) helperT.textContent = t.helper;
 
   document.querySelectorAll('[data-ru]:not(#tab-rules [data-ru])').forEach(el => {
     el.textContent = l === 'de' ? el.dataset.de : el.dataset.ru;

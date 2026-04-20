@@ -791,9 +791,13 @@
 
     <div id="card-modal-img-wrap">
 
+      <button class="modal-nav-btn" id="card-nav-prev" onclick="event.stopPropagation(); navigateCardModal(-1)">&#8249;</button>
+
       <img id="card-modal-img" src="" alt="" onclick="openImgLightbox(this.src)">
 
       <div id="card-modal-frame"></div>
+
+      <button class="modal-nav-btn" id="card-nav-next" onclick="event.stopPropagation(); navigateCardModal(1)">&#8250;</button>
 
     </div>
 
@@ -809,11 +813,7 @@
 
       <div class="modal-actions">
 
-        <button class="modal-nav-btn" id="card-nav-prev" onclick="event.stopPropagation(); navigateCardModal(-1)">&#8249;</button>
-
         <button class="btn-primary" id="card-modal-deck-btn" onclick="toggleCardInDeck()">+ В колоду</button>
-
-        <button class="modal-nav-btn" id="card-nav-next" onclick="event.stopPropagation(); navigateCardModal(1)">&#8250;</button>
 
       </div>
 
