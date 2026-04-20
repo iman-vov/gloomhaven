@@ -367,31 +367,39 @@
 
       <h2 class="section-title" id="goals-title">⚔ Боевые задания</h2>
 
-      <div class="goals-controls">
-
-        <select id="goal-select" onchange="loadGoalFromSelect()">
-
-          <option value="">— Выбрать задание —</option>
-
-        </select>
-
+      <div class="goals-mode-tabs">
+        <button class="goals-mode-btn active" id="goal-mode-btn-manual" onclick="setGoalMode('manual')">📖 Вручну</button>
+        <button class="goals-mode-btn" id="goal-mode-btn-draw" onclick="setGoalMode('draw')">🎲 Жеребкування</button>
       </div>
 
+      <!-- Manual mode -->
+      <div id="goals-manual-section">
 
+        <div class="goals-controls">
 
-      <div id="goal-display-wrap" class="hidden">
+          <select id="goal-select" onchange="loadGoalFromSelect()">
 
-        <div class="goal-scroll-card">
+            <option value="">— Выбрать задание —</option>
 
-          <div class="goal-scroll-inner">
+          </select>
 
-            <div id="goal-num" class="goal-scroll-num"></div>
+        </div>
 
-            <div id="goal-name" class="goal-scroll-name"></div>
+        <div id="goal-display-wrap" class="hidden">
 
-            <div class="goal-scroll-divider"><span>✦</span></div>
+          <div class="goal-scroll-card">
 
-            <div id="goal-condition" class="goal-scroll-condition"></div>
+            <div class="goal-scroll-inner">
+
+              <div id="goal-num" class="goal-scroll-num"></div>
+
+              <div id="goal-name" class="goal-scroll-name"></div>
+
+              <div class="goal-scroll-divider"><span>✦</span></div>
+
+              <div id="goal-condition" class="goal-scroll-condition"></div>
+
+            </div>
 
           </div>
 
@@ -399,7 +407,30 @@
 
       </div>
 
+      <!-- Draw mode -->
+      <div id="goals-draw-section" class="hidden">
 
+        <div id="goals-draw-setup">
+
+          <div class="draw-player-count-row">
+            <span id="draw-players-label">Гравців:</span>
+            <div class="draw-count-btns">
+              <button class="draw-count-btn active" onclick="setDrawPlayerCount(1)">1</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(2)">2</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(3)">3</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(4)">4</button>
+            </div>
+          </div>
+
+          <button class="btn-primary draw-start-btn" id="draw-start-btn" onclick="startGoalDraw()">🎲 Розіграти</button>
+
+        </div>
+
+        <div id="goals-draw-results"></div>
+
+        <button class="btn-secondary draw-reset-btn hidden" id="draw-reset-btn" onclick="resetGoalDraw()">↺ Новий сеанс</button>
+
+      </div>
 
     </div>
 
@@ -485,7 +516,15 @@
 
         <button class="btn-close-modal" onclick="closeItemModalDirect()">✕</button>
 
-        <img id="item-modal-img" src="" alt="">
+        <div id="item-modal-img-wrap">
+
+          <button class="modal-nav-btn" id="item-nav-prev" onclick="event.stopPropagation(); navigateItemModal(-1)">&#8249;</button>
+
+          <img id="item-modal-img" src="" alt="">
+
+          <button class="modal-nav-btn" id="item-nav-next" onclick="event.stopPropagation(); navigateItemModal(1)">&#8250;</button>
+
+        </div>
 
         <div class="item-modal-body">
 

@@ -110,6 +110,18 @@ function setLang(l) {
   const goalSel = document.getElementById('goal-select');
   if (goalSel && goalSel.value) displayGoal(parseInt(goalSel.value));
 
+  const goalModeBtnManual = document.getElementById('goal-mode-btn-manual');
+  if (goalModeBtnManual) goalModeBtnManual.textContent = l === 'de' ? '📖 Manuell' : '📖 Вручну';
+  const goalModeBtnDraw = document.getElementById('goal-mode-btn-draw');
+  if (goalModeBtnDraw) goalModeBtnDraw.textContent = l === 'de' ? '🎲 Auslosung' : '🎲 Жеребкування';
+  const drawStartBtn = document.getElementById('draw-start-btn');
+  if (drawStartBtn) drawStartBtn.textContent = l === 'de' ? '🎲 Auslosen' : '🎲 Розіграти';
+  const drawResetBtn = document.getElementById('draw-reset-btn');
+  if (drawResetBtn) drawResetBtn.textContent = l === 'de' ? '↺ Neue Runde' : '↺ Новий сеанс';
+  const drawPlayersLabel = document.getElementById('draw-players-label');
+  if (drawPlayersLabel) drawPlayersLabel.textContent = l === 'de' ? 'Spieler:' : 'Гравців:';
+  if (drawState) renderDrawResults();
+
   updateRulesLang(l);
   updateHelperLang();
   document.querySelectorAll('.pdf-lang-ru').forEach(el => el.classList.toggle('hidden', l === 'de'));

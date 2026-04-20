@@ -130,6 +130,15 @@ function renderOwnedGrid() {
   });
 }
 
+function getShopNavItems() {
+  const visible = getVisibleItemIds();
+  if (shopView === 'owned') {
+    const inv = getInventory(null);
+    return ITEMS.filter(x => inv.includes(x.id));
+  }
+  return ITEMS.filter(x => visible.has(x.id));
+}
+
 function openItemModal(item) {
   openItemId = item.id;
   const inv = getInventory(null);
@@ -141,7 +150,18 @@ function openItemModal(item) {
   const btn = document.getElementById('item-modal-buy-btn');
   btn.textContent = owned ? (lang==='de'?'✓ Verkaufen':'✓ Продать') : (lang==='de'?'🛒 Kaufen':'🛒 Купить');
   btn.className = 'btn-primary' + (owned ? ' remove' : '');
+  const navItems = getShopNavItems();
+  const idx = navItems.findIndex(x => x.id === item.id);
+  document.getElementById('item-nav-prev').disabled = idx <= 0;
+  document.getElementById('item-nav-next').disabled = idx >= navItems.length - 1;
   document.getElementById('item-modal').classList.add('open');
+}
+
+function navigateItemModal(delta) {
+  const navItems = getShopNavItems();
+  const idx = navItems.findIndex(x => x.id === openItemId);
+  const next = navItems[idx + delta];
+  if (next) openItemModal(next);
 }
 
 function toggleItemOwned() {
