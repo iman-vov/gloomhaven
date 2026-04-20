@@ -410,6 +410,21 @@
       <!-- Draw mode -->
       <div id="goals-draw-section" class="hidden">
 
+        <!-- Session panel -->
+        <div id="session-panel">
+          <div id="session-connected" class="hidden">
+            <span id="session-label-code">Сессия:</span>
+            <strong id="session-code-display"></strong>
+            <button class="btn-secondary session-btn" id="session-leave-btn" onclick="leaveSession()">Выйти</button>
+          </div>
+          <div id="session-disconnected">
+            <button class="btn-secondary session-btn" id="session-create-btn" onclick="createSession()">+ Создать сессию</button>
+            <span class="session-or" id="session-or-label">или</span>
+            <input id="session-code-input" class="session-code-input" placeholder="Код" maxlength="4">
+            <button class="btn-secondary session-btn" id="session-join-btn" onclick="joinSessionFromInput()">Войти</button>
+          </div>
+        </div>
+
         <div id="goals-draw-setup">
 
           <div class="draw-player-count-row">
@@ -875,6 +890,11 @@
      JAVASCRIPT
 
 ══════════════════════════════════════════════════ -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/firebase-init.js"></script>
+<script src="js/session.js"></script>
 
 <script src="js/missions.js"></script>
 

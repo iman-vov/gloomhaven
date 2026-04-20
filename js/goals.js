@@ -1,6 +1,6 @@
 let goalMode = 'manual';
 let drawPlayerCount = 1;
-let drawState = null; // [{options:[id,id], picked:id|null}]
+let drawState = null; // {players:[{options:[id,id], picked:id|null}], activePlayer:0, revealed:bool}
 
 function setGoalMode(mode) {
   goalMode = mode;
@@ -27,21 +27,39 @@ function startGoalDraw() {
     taken.add(a.id); taken.add(b.id);
     players.push({ options: [a.id, b.id], picked: null });
   }
-  drawState = players;
+  drawState = { players, activePlayer: 0, revealed: false };
   lsSet('gh_draw_state', drawState);
+  syncDrawState();
   renderDrawResults();
 }
 
-function pickGoal(playerIdx, goalId) {
-  if (!drawState || drawState[playerIdx].picked !== null) return;
-  drawState[playerIdx].picked = goalId;
+function revealCurrentPlayer() {
+  if (!drawState) return;
+  drawState.revealed = true;
   lsSet('gh_draw_state', drawState);
+  syncDrawState();
+  renderDrawResults();
+}
+
+function pickGoal(goalId) {
+  if (!drawState || !drawState.revealed) return;
+  const idx = drawState.activePlayer;
+  if (drawState.players[idx].picked !== null) return;
+  drawState.players[idx].picked = goalId;
+  drawState.revealed = false;
+  // advance to next player who hasn't picked yet
+  let next = idx + 1;
+  while (next < drawState.players.length && drawState.players[next].picked !== null) next++;
+  drawState.activePlayer = next;
+  lsSet('gh_draw_state', drawState);
+  syncDrawState();
   renderDrawResults();
 }
 
 function resetGoalDraw() {
   drawState = null;
   lsSet('gh_draw_state', null);
+  syncDrawState();
   renderDrawResults();
 }
 
@@ -57,7 +75,7 @@ function renderDrawResults() {
   const setupDiv = document.getElementById('goals-draw-setup');
   const de = lang === 'de';
 
-  if (!drawState || drawState.length === 0) {
+  if (!drawState || drawState.players.length === 0) {
     container.innerHTML = '';
     resetBtn.classList.add('hidden');
     setupDiv.classList.remove('hidden');
@@ -68,47 +86,71 @@ function renderDrawResults() {
   resetBtn.classList.remove('hidden');
   container.innerHTML = '';
 
-  drawState.forEach((player, idx) => {
+  const { players, activePlayer, revealed } = drawState;
+  const allDone = players.every(p => p.picked !== null);
+
+  if (allDone) {
+    // Show summary of all picks
+    players.forEach((player, idx) => {
+      const g = GOALS.find(x => x.id === player.picked);
+      const section = document.createElement('div');
+      section.className = 'draw-player-section';
+      section.innerHTML = `
+        <div class="draw-player-header">${de ? `Spieler ${idx+1}` : `Игрок ${idx+1}`}</div>
+        <div class="draw-goal-picked">
+          <div class="draw-goal-check">✓</div>
+          <div class="draw-goal-info">
+            <div class="draw-goal-num">#${g.id}</div>
+            <div class="draw-goal-name">${de && g.nameDe ? g.nameDe : g.nameRu}</div>
+            <div class="draw-goal-cond">${de && g.conditionDe ? g.conditionDe : g.conditionRu}</div>
+          </div>
+        </div>`;
+      container.appendChild(section);
+    });
+    return;
+  }
+
+  if (!revealed) {
+    // Handoff screen — nothing from previous players shown
+    const handoff = document.createElement('div');
+    handoff.className = 'draw-handoff';
+
+    handoff.innerHTML = `
+      <div class="draw-handoff-icon">🎲</div>
+      <div class="draw-handoff-text">${de ? `Gerät an Spieler ${activePlayer+1} übergeben` : `Передайте пристрій Игроку ${activePlayer+1}`}</div>
+      <button class="btn-primary draw-reveal-btn" onclick="revealCurrentPlayer()">
+        ${de ? '👁 Meine Aufgaben anzeigen' : '👁 Показать мои задания'}
+      </button>`;
+    container.appendChild(handoff);
+  } else {
+    // Show current player's options
+    const player = players[activePlayer];
+
     const section = document.createElement('div');
-    section.className = 'draw-player-section';
+    section.className = 'draw-player-section draw-player-active';
 
     const header = document.createElement('div');
     header.className = 'draw-player-header';
-    header.textContent = de ? `Spieler ${idx + 1}` : `Игрок ${idx + 1}`;
+    header.textContent = de ? `Spieler ${activePlayer+1} — wähle deine Aufgabe` : `Игрок ${activePlayer+1} — выбери своё задание`;
     section.appendChild(header);
 
-    if (player.picked !== null) {
-      const pickedGoal = GOALS.find(g => g.id === player.picked);
-      const wrap = document.createElement('div');
-      wrap.className = 'draw-goal-picked';
-      wrap.innerHTML = `
-        <div class="draw-goal-check">✓</div>
-        <div class="draw-goal-info">
-          <div class="draw-goal-num">#${pickedGoal.id}</div>
-          <div class="draw-goal-name">${de && pickedGoal.nameDe ? pickedGoal.nameDe : pickedGoal.nameRu}</div>
-          <div class="draw-goal-cond">${de && pickedGoal.conditionDe ? pickedGoal.conditionDe : pickedGoal.conditionRu}</div>
-        </div>`;
-      section.appendChild(wrap);
-    } else {
-      const opts = document.createElement('div');
-      opts.className = 'draw-goal-options';
-      player.options.forEach(gid => {
-        const g = GOALS.find(x => x.id === gid);
-        const card = document.createElement('div');
-        card.className = 'draw-goal-card';
-        card.innerHTML = `
-          <div class="draw-goal-num">#${g.id}</div>
-          <div class="draw-goal-name">${de && g.nameDe ? g.nameDe : g.nameRu}</div>
-          <div class="draw-goal-cond">${de && g.conditionDe ? g.conditionDe : g.conditionRu}</div>
-          <button class="btn-primary draw-pick-btn">${de ? 'Wählen' : 'Выбрать'}</button>`;
-        card.querySelector('.draw-pick-btn').onclick = () => pickGoal(idx, gid);
-        opts.appendChild(card);
-      });
-      section.appendChild(opts);
-    }
-
+    const opts = document.createElement('div');
+    opts.className = 'draw-goal-options';
+    player.options.forEach(gid => {
+      const g = GOALS.find(x => x.id === gid);
+      const card = document.createElement('div');
+      card.className = 'draw-goal-card';
+      card.innerHTML = `
+        <div class="draw-goal-num">#${g.id}</div>
+        <div class="draw-goal-name">${de && g.nameDe ? g.nameDe : g.nameRu}</div>
+        <div class="draw-goal-cond">${de && g.conditionDe ? g.conditionDe : g.conditionRu}</div>
+        <button class="btn-primary draw-pick-btn">${de ? 'Wählen' : 'Выбрать'}</button>`;
+      card.querySelector('.draw-pick-btn').onclick = () => pickGoal(gid);
+      opts.appendChild(card);
+    });
+    section.appendChild(opts);
     container.appendChild(section);
-  });
+  }
 }
 
 // ─── Manual mode ───────────────────────────────────────

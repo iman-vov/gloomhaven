@@ -66,6 +66,7 @@ function init() {
   if (tabBtn) tabBtn.click();
   const savedChar = lsGet('activeChar', null);
   if (savedChar && CHARS[savedChar]) selectChar(savedChar);
+  initSession();
 }
 
 init();
