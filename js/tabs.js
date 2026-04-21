@@ -25,8 +25,12 @@ function switchTab(id) {
   lsSet('activeTab', id);
 
   if (id === 'shop') {
+    if (typeof updateShopGoldBar === 'function') updateShopGoldBar();
     renderItemsGrid();
     if (shopView === 'owned') renderOwnedGrid();
+  }
+  if (id === 'party' && typeof renderPartyTab === 'function') {
+    renderPartyTab();
   }
   if (id === 'missions') {
     initMissionSelect();

@@ -76,16 +76,11 @@
     gap: 6px;
   }
   #sb-d-connected {
-    display: grid;
-    grid-template-columns: auto auto auto auto;
-    grid-template-areas:
-      "row1 row1 gold leave"
-      "players players players players";
-    gap: 6px;
+    display: flex;
     align-items: center;
+    gap: 8px;
   }
   .sb-conn-row1 {
-    grid-area: row1;
     display: flex;
     gap: 6px;
     align-items: center;
@@ -144,58 +139,6 @@
     padding: 4px 8px;
     width: 100px;
   }
-  #sb-players-list {
-    grid-area: players;
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    flex: 1;
-    width: 100%;
-  }
-  #sb-gold-row {
-    grid-area: gold;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .sb-gold-input {
-    width: 52px;
-    background: var(--bg2);
-    border: 1px solid var(--border2);
-    border-radius: 4px;
-    color: var(--gold);
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    padding: 3px 6px;
-    text-align: center;
-  }
-  #sb-leave-btn { grid-area: leave; }
-  .sb-player-chip {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    font-size: 0.72rem;
-    color: var(--text-dim);
-    white-space: nowrap;
-  }
-  .sb-player-chip.sb-me {
-    border-color: var(--gold);
-    color: var(--gold);
-  }
-  .sb-deck-view-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 0.85rem;
-    padding: 0 2px;
-    opacity: 0.7;
-  }
-  .sb-deck-view-btn:hover { opacity: 1; }
-
   #deck-view-overlay {
     position: fixed;
     inset: 0;
@@ -252,6 +195,15 @@
     color: var(--gold);
     font-family: 'Cinzel', serif;
     cursor: pointer;
+  }
+  #shop-gold-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0 4px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--gold);
   }
 
   #shop-choice-overlay {
@@ -394,6 +346,75 @@
     background: var(--bg3);
     border: 1px solid var(--border2);
     color: var(--text-dim);
+  }
+  #tab-party .party-empty {
+    color: var(--text-dim);
+    font-style: italic;
+    padding: 24px;
+    text-align: center;
+  }
+  .party-player-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .party-player-card.party-me {
+    border-color: var(--gold);
+  }
+  .party-player-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    color: var(--gold2);
+  }
+  .party-gold-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 0.85rem;
+  }
+  .party-gold-input {
+    width: 64px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 4px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    text-align: center;
+  }
+  .party-items-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+  .party-item-thumb {
+    width: 56px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .party-no-items {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 0.85rem;
+  }
+  .party-deck-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.78rem;
+    padding: 6px 14px;
+    cursor: pointer;
   }
 
   #app-header h1 {

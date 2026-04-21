@@ -60,6 +60,8 @@ function _connectSession(code) {
 
     updateSessionBar();
     updateCharCards();
+    renderPartyTab();
+    updateShopGoldBar();
     if (typeof renderItemsGrid === 'function') renderItemsGrid();
     if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
   });
@@ -81,11 +83,14 @@ function _connectSession(code) {
     } else {
       sessionShopStock = stock;
     }
+    updateShopGoldBar();
     if (typeof renderItemsGrid === 'function') renderItemsGrid();
     if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
   });
 
   updateSessionBar();
+  renderPartyTab();
+  updateShopGoldBar();
 }
 
 function leaveSession() {
@@ -106,6 +111,8 @@ function leaveSession() {
   lsSet('gh_session', null);
   updateSessionBar();
   updateCharCards();
+  renderPartyTab();
+  updateShopGoldBar();
   if (typeof renderItemsGrid === 'function') renderItemsGrid();
   if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
 }
@@ -150,9 +157,8 @@ function setMyGold(amount) {
   const safeAmount = Math.max(0, parseInt(amount, 10) || 0);
   lsSet('gh_gold', String(safeAmount));
   syncGoldToFirebase(safeAmount);
-  const goldInput = document.getElementById('sb-gold-input');
-  if (goldInput) goldInput.value = safeAmount;
-  updateSessionBar();
+  updateShopGoldBar();
+  renderPartyTab();
 }
 
 function syncShopStockToFirebase(stock) {
@@ -274,20 +280,26 @@ function showPlayerDeck(pid) {
     deck.forEach(cardId => {
       const item = document.createElement('div');
       item.className = 'deck-view-card';
-      item.textContent = cardId;
+      const img = document.createElement('img');
+      img.src = `./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${p.hero}/${cardId}.png`;
+      img.alt = cardId;
+      img.onerror = () => {
+        item.innerHTML = `<div class="deck-view-empty">${cardId}</div>`;
+      };
+      item.appendChild(img);
       list.appendChild(item);
     });
   } else {
     const empty = document.createElement('div');
-    empty.className = 'deck-view-card';
-    empty.textContent = 'Пусто';
+    empty.className = 'deck-view-empty';
+    empty.textContent = lang === 'de' ? 'Deck ist leer' : 'Колода пуста';
     list.appendChild(empty);
   }
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'deck-view-close';
-  closeBtn.textContent = 'Закрыть';
+  closeBtn.textContent = lang === 'de' ? 'Schließen' : 'Закрыть';
   closeBtn.onclick = () => overlay.remove();
 
   box.appendChild(title);
@@ -295,6 +307,68 @@ function showPlayerDeck(pid) {
   box.appendChild(closeBtn);
   overlay.appendChild(box);
   document.body.appendChild(overlay);
+}
+
+function updateShopGoldBar() {
+  const bar = document.getElementById('shop-gold-bar');
+  if (!bar) return;
+  bar.style.display = sessionCode ? 'flex' : 'none';
+
+  const input = document.getElementById('shop-gold-input');
+  if (input && !input.dataset.initialized) {
+    input.dataset.initialized = '1';
+    input.addEventListener('change', () => setMyGold(parseInt(input.value, 10) || 0));
+  }
+  if (input) input.value = getMyGold();
+}
+
+function renderPartyTab() {
+  const content = document.getElementById('party-content');
+  if (!content) return;
+
+  if (!sessionCode) {
+    content.innerHTML = `<div class="party-empty">${lang === 'de'
+      ? 'Keine aktive Sitzung. Bitte im Header beitreten oder eine Sitzung erstellen.'
+      : 'Нет активной сессии. Подключитесь или создайте сессию в хедере.'}</div>`;
+    return;
+  }
+
+  const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
+  const cardsHtml = Object.entries(sessionPlayers).map(([pid, p]) => {
+    const isMe = pid === playerId;
+    const items = getSessionPlayerItems(pid);
+    const itemThumbs = items.length
+      ? items.map(id => `<img class="party-item-thumb" src="./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/items/${id}.png" alt="${id}">`).join('')
+      : `<div class="party-no-items">${lang === 'de' ? 'keine Gegenstände' : 'нет предметов'}</div>`;
+
+    const goldBlock = isMe
+      ? `<div class="party-gold-row"><span>🪙</span><input class="party-gold-input" type="number" min="0" max="999" value="${p.gold ?? 0}" data-party-gold="${pid}"></div>`
+      : `<div class="party-gold-row"><span>🪙 ${p.gold ?? 0}</span></div>`;
+
+    const deckBtn = p.hero
+      ? `<button class="party-deck-btn" type="button" data-party-deck="${pid}">👁 ${lang === 'de' ? 'Deck ansehen' : 'Переглянути колоду'}</button>`
+      : '';
+
+    return `
+      <div class="party-player-card${isMe ? ' party-me' : ''}">
+        <div class="party-player-header">${p.hero ? heroIcons[p.hero] : '❓'} ${p.hero || '---'} ${p.name || '?'}</div>
+        ${goldBlock}
+        <div class="party-items-row">${itemThumbs}</div>
+        ${deckBtn}
+      </div>`;
+  }).join('');
+
+  content.innerHTML = cardsHtml;
+
+  content.querySelectorAll('[data-party-gold]').forEach(input => {
+    if (input.dataset.initialized) return;
+    input.dataset.initialized = '1';
+    input.addEventListener('change', () => setMyGold(parseInt(input.value, 10) || 0));
+  });
+
+  content.querySelectorAll('[data-party-deck]').forEach(btn => {
+    btn.addEventListener('click', () => showPlayerDeck(btn.dataset.partyDeck));
+  });
 }
 
 // Session bar UI
@@ -309,7 +383,6 @@ function _initNameInput(el) {
 
 function updateSessionBar() {
   const de = lang === 'de';
-  const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
 
   const dDisc = document.getElementById('sb-d-disconnected');
   const dConn = document.getElementById('sb-d-connected');
@@ -327,45 +400,15 @@ function updateSessionBar() {
   if (sessionCode) {
     dDisc.classList.add('hidden');
     dConn.classList.remove('hidden');
-    document.getElementById('sb-code-display').textContent = sessionCode;
+    const codeDisplay = document.getElementById('sb-code-display');
+    if (codeDisplay) codeDisplay.textContent = sessionCode;
     _initNameInput(document.getElementById('sb-name-input'));
-
-    const goldInput = document.getElementById('sb-gold-input');
-    if (goldInput) {
-      goldInput.value = getMyGold();
-      if (!goldInput.dataset.initialized) {
-        goldInput.dataset.initialized = '1';
-        goldInput.addEventListener('change', () => setMyGold(goldInput.value));
-      }
-    }
-
-    const list = document.getElementById('sb-players-list');
-    if (list) {
-      list.innerHTML = '';
-      Object.entries(sessionPlayers).forEach(([pid, p]) => {
-        const chip = document.createElement('div');
-        chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
-
-        const label = document.createElement('span');
-        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'} 🪙${p.gold ?? 0}`;
-        chip.appendChild(label);
-
-        if (pid !== playerId && p.hero) {
-          const btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'sb-deck-view-btn';
-          btn.textContent = '👁';
-          btn.onclick = () => showPlayerDeck(pid);
-          chip.appendChild(btn);
-        }
-
-        list.appendChild(chip);
-      });
-    }
   } else {
     dDisc.classList.remove('hidden');
     dConn.classList.add('hidden');
   }
+
+  updateShopGoldBar();
 }
 
 function initSession() {
@@ -376,5 +419,9 @@ function initSession() {
   }
   const saved = lsGet('gh_session', null);
   if (saved) _connectSession(saved);
-  else updateSessionBar();
+  else {
+    updateSessionBar();
+    renderPartyTab();
+    updateShopGoldBar();
+  }
 }

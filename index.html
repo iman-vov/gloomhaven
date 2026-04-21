@@ -50,11 +50,6 @@
       <span class="sb-code-badge" id="sb-code-display"></span>
       <input id="sb-name-input" class="sb-name-input" maxlength="14" placeholder="Имя">
       </div>
-      <div id="sb-players-list"></div>
-      <div id="sb-gold-row">
-        <span>🪙</span>
-        <input id="sb-gold-input" type="number" min="0" max="999" class="sb-gold-input" placeholder="0">
-      </div>
       <button id="sb-leave-btn" class="sb-btn sb-leave" onclick="leaveSession()" title="Выйти">✕</button>
     </div>
   </div>
@@ -91,6 +86,7 @@
   <button class="tab-btn" onclick="switchTab('events')" id="tabbtn-events">🏙 События</button>
 
   <button class="tab-btn" onclick="switchTab('shop')" id="tabbtn-shop">🛒 Магазин</button>
+  <button class="tab-btn" onclick="switchTab('party')" id="tabbtn-party">👥 Партия</button>
 
   <button class="tab-btn" onclick="switchTab('helper')" id="tabbtn-helper">📚 Справочник</button>
 
@@ -267,7 +263,7 @@
 
     </div>
 
-  </section>
+
 
 
 
@@ -277,6 +273,7 @@
 
   ══════════════════════════════════ -->
 
+  </section>
   <section id="tab-events" class="tab-panel">
 
     <h2 class="section-title" id="events-title">🏙 Городские события</h2>
@@ -468,6 +465,12 @@
 
     <h2 class="section-title" id="shop-title">🛒 Магазин</h2>
 
+    <div id="shop-gold-bar">
+      <span>🪙</span>
+      <input id="shop-gold-input" type="number" min="0" max="999" class="party-gold-input" placeholder="0">
+      <span id="shop-gold-label" style="font-size:0.8rem;color:var(--text-dim);">моё золото</span>
+    </div>
+
 
 
     <!-- View toggle: Shop / Owned -->
@@ -575,6 +578,11 @@
        TAB 5: RULES REMINDER
 
   ══════════════════════════════════ -->
+
+  <section id="tab-party" class="tab-panel">
+    <h2 class="section-title" id="party-title">👥 Партия</h2>
+    <div id="party-content"></div>
+  </section>
 
   <section id="tab-rules" class="tab-panel">
     <h2 class="section-title" id="rules-title">📋 Памятка по правилам</h2>

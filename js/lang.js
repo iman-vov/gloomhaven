@@ -6,10 +6,12 @@ function setLang(l) {
   document.getElementById('btn-lang-de').classList.toggle('active', l === 'de');
 
   const labels = {
-    ru: ['🃏 Герои', '📖 Миссии', '⚔ Задания', '🏙 События', '🛒 Магазин', '📚 Справочник', '📋 Правила'],
-    de: ['🃏 Helden', '📖 Szenarien', '⚔ Aufgaben', '🏙 Ereignisse', '🛒 Laden', '📚 Handbuch', '📋 Regeln']
+    ru: ['🃏 Герои', '📖 Миссии', '⚔ Задания', '🏙 События', '🛒 Магазин', '👥 Партия', '📚 Справочник', '📋 Правила'],
+    de: ['🃏 Helden', '📖 Szenarien', '⚔ Aufgaben', '🏙 Ereignisse', '🛒 Laden', '👥 Gruppe', '📚 Handbuch', '📋 Regeln']
   };
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.textContent = labels[l][i]);
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    if (labels[l][i]) b.textContent = labels[l][i];
+  });
 
   const charNames = {
     HA: { ru: CHARS.HA.nameRu, de: CHARS.HA.nameDe },
@@ -26,18 +28,23 @@ function setLang(l) {
   const charSubs = {
     HA: { ru: 'Коричневый', de: 'Braun' },
     DE: { ru: 'Оранжевый', de: 'Orange' },
-    VW: { ru: 'Серый',     de: 'Grau'  },
-    RG: { ru: 'Красный',   de: 'Rot'   }
+    VW: { ru: 'Серый', de: 'Grau' },
+    RG: { ru: 'Красный', de: 'Rot' }
   };
   ['HA', 'DE', 'VW', 'RG'].forEach(code => {
     const nameEl = document.getElementById(`cc-name-${code}`);
     if (nameEl) nameEl.textContent = charNames[code][l];
     const subEl = document.getElementById(`cc-sub-${code}`);
-    if (subEl) { subEl.style.color = charColors[code]; subEl.textContent = charSubs[code][l]; }
+    if (subEl) {
+      subEl.style.color = charColors[code];
+      subEl.textContent = charSubs[code][l];
+    }
   });
 
   const hint = document.getElementById('char-select-hint');
-  if (hint) hint.textContent = l === 'de' ? 'Wähle einen Charakter, um Karten anzusehen' : 'Выберите героя, чтобы открыть карты';
+  if (hint) hint.textContent = l === 'de'
+    ? 'Wähle einen Charakter, um Karten anzusehen'
+    : 'Выберите героя, чтобы открыть карты';
 
   if (activeChar) {
     document.getElementById('active-char-name').textContent = charName(activeChar);
@@ -56,18 +63,41 @@ function setLang(l) {
   if (svOwned) svOwned.textContent = l === 'de' ? 'Meine Käufe' : 'Мои покупки';
 
   const titleEl = document.getElementById('game-title');
-  if (titleEl) titleEl.textContent = l === 'de' ? 'Gloomhaven. Die Pranken des Löwen' : 'Мрачная гавань. Челюсти Льва';
-  document.title = l === 'de' ? 'Gloomhaven: Die Pranken des Löwen' : 'Gloomhaven: Челюсти Льва';
+  if (titleEl) titleEl.textContent = l === 'de'
+    ? 'Gloomhaven. Die Pranken des Löwen'
+    : 'Мрачная гавань. Челюсти Льва';
+  document.title = l === 'de'
+    ? 'Gloomhaven: Die Pranken des Löwen'
+    : 'Gloomhaven: Челюсти Льва';
 
   const sectionTitles = {
-    ru: { heroes: '🃏 Карты Героев', events: '🏙 Городские события', goals: '⚔ Боевые задания', shop: '🛒 Магазин', rules: '📋 Памятка по правилам', missions: '📖 Миссии', helper: '📚 Справочник' },
-    de: { heroes: '🃏 Heldenkarten', events: '🏙 Stadtereignisse', goals: '⚔ Kampfaufgaben', shop: '🛒 Laden', rules: '📋 Regelübersicht', missions: '📖 Szenarien', helper: '📚 Handbuch' }
+    ru: {
+      heroes: '🃏 Карты Героев',
+      events: '🏙 Городские события',
+      goals: '⚔ Боевые задания',
+      shop: '🛒 Магазин',
+      party: '👥 Партия',
+      rules: '📋 Памятка по правилам',
+      missions: '📖 Миссии',
+      helper: '📚 Справочник'
+    },
+    de: {
+      heroes: '🃏 Heldenkarten',
+      events: '🏙 Stadtereignisse',
+      goals: '⚔ Kampfaufgaben',
+      shop: '🛒 Laden',
+      party: '👥 Gruppe',
+      rules: '📋 Regelübersicht',
+      missions: '📖 Szenarien',
+      helper: '📚 Handbuch'
+    }
   };
   const t = sectionTitles[l];
   const heroesT = document.getElementById('heroes-title');
   const eventsT = document.getElementById('events-title');
   const goalsT = document.getElementById('goals-title');
   const shopT = document.getElementById('shop-title');
+  const partyT = document.getElementById('party-title');
   const rulesT = document.getElementById('rules-title');
   const missionsT = document.getElementById('missions-title');
   const helperT = document.getElementById('helper-title');
@@ -75,6 +105,7 @@ function setLang(l) {
   if (eventsT) eventsT.textContent = t.events;
   if (goalsT) goalsT.textContent = t.goals;
   if (shopT) shopT.textContent = t.shop;
+  if (partyT) partyT.textContent = t.party;
   if (rulesT) rulesT.textContent = t.rules;
   if (missionsT) missionsT.textContent = t.missions;
   if (helperT) helperT.textContent = t.helper;
@@ -100,6 +131,8 @@ function setLang(l) {
   if (btnUnlockAdd) btnUnlockAdd.textContent = l === 'de' ? '+ Hinzufügen' : '+ Добавить';
   const btnShopReset = document.getElementById('btn-shop-reset');
   if (btnShopReset) btnShopReset.title = l === 'de' ? 'Laden zurücksetzen' : 'Сбросить магазин';
+  const shopGoldLabel = document.getElementById('shop-gold-label');
+  if (shopGoldLabel) shopGoldLabel.textContent = l === 'de' ? 'mein Gold' : 'моё золото';
 
   initEventSelect();
   const evSel = document.getElementById('event-select');
@@ -108,7 +141,7 @@ function setLang(l) {
   initGoalSelect();
   renderGoalsList();
   const goalSel = document.getElementById('goal-select');
-  if (goalSel && goalSel.value) displayGoal(parseInt(goalSel.value));
+  if (goalSel && goalSel.value) displayGoal(parseInt(goalSel.value, 10));
 
   const goalModeBtnManual = document.getElementById('goal-mode-btn-manual');
   if (goalModeBtnManual) goalModeBtnManual.textContent = l === 'de' ? '📖 Manuell' : '📖 Вручную';
@@ -123,6 +156,8 @@ function setLang(l) {
   if (drawState) renderDrawResults();
 
   updateSessionBar();
+  if (typeof renderPartyTab === 'function') renderPartyTab();
+  if (typeof updateShopGoldBar === 'function') updateShopGoldBar();
 
   updateRulesLang(l);
   updateHelperLang();
