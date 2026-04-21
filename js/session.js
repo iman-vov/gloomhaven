@@ -3,7 +3,8 @@ let playerId = null;
 
 let sessionCode = null;
 let sessionRef = null;
-let sessionPlayers = {}; // {playerId: {name, hero, joinedAt, deck}}
+let sessionPlayers = {}; // {playerId: {name, hero, joinedAt, deck, gold}}
+let sessionShopStock = null; // null = no session, use local shop logic
 
 // Session create / join / leave
 
@@ -38,6 +39,7 @@ function _connectSession(code) {
     hero: null,
     joinedAt: Date.now()
   });
+  sessionRef.child(`players/${playerId}/gold`).set(getMyGold());
 
   const myHero = lsGet('activeChar', null);
   if (myHero) syncDeckToFirebase(myHero);
@@ -56,12 +58,27 @@ function _connectSession(code) {
     }
   });
 
+  sessionRef.child('shop/stock').on('value', snap => {
+    const stock = snap.val();
+    if (!stock) {
+      const initial = typeof getInitialStock === 'function' ? getInitialStock() : {};
+      sessionRef.child('shop/stock').set(initial);
+      sessionShopStock = initial;
+    } else {
+      sessionShopStock = stock;
+    }
+    if (typeof renderItemsGrid === 'function') renderItemsGrid();
+    if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
+  });
+
   updateSessionBar();
 }
 
 function leaveSession() {
-  const overlay = document.getElementById('deck-view-overlay');
-  if (overlay) overlay.remove();
+  const deckOverlay = document.getElementById('deck-view-overlay');
+  if (deckOverlay) deckOverlay.remove();
+  const shopOverlay = document.getElementById('shop-choice-overlay');
+  if (shopOverlay) shopOverlay.remove();
 
   if (sessionRef) {
     sessionRef.child(`players/${playerId}/hero`).set(null);
@@ -70,9 +87,12 @@ function leaveSession() {
   }
   sessionCode = null;
   sessionPlayers = {};
+  sessionShopStock = null;
   lsSet('gh_session', null);
   updateSessionBar();
   updateCharCards();
+  if (typeof renderItemsGrid === 'function') renderItemsGrid();
+  if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
 }
 
 // Hero claiming
@@ -98,6 +118,36 @@ function getMyHero() {
 function getHeroOwner(heroCode) {
   const entry = Object.entries(sessionPlayers).find(([, p]) => p.hero === heroCode);
   return entry ? { id: entry[0], ...entry[1] } : null;
+}
+
+// Gold + shop stock sync
+
+function syncGoldToFirebase(amount) {
+  if (!sessionRef) return;
+  sessionRef.child(`players/${playerId}/gold`).set(amount);
+}
+
+function getMyGold() {
+  return parseInt(lsGet('gh_gold', '0'), 10) || 0;
+}
+
+function setMyGold(amount) {
+  const safeAmount = Math.max(0, parseInt(amount, 10) || 0);
+  lsSet('gh_gold', String(safeAmount));
+  syncGoldToFirebase(safeAmount);
+  const goldInput = document.getElementById('sb-gold-input');
+  if (goldInput) goldInput.value = safeAmount;
+  updateSessionBar();
+}
+
+function syncShopStockToFirebase(stock) {
+  if (!sessionRef) return;
+  sessionRef.child('shop/stock').set(stock);
+}
+
+function getItemStock(itemId) {
+  if (!sessionShopStock) return 99;
+  return sessionShopStock[itemId] ?? 1;
 }
 
 // Sync draw state
@@ -178,13 +228,17 @@ function showPlayerDeck(pid) {
     deck.forEach(cardId => {
       const item = document.createElement('div');
       item.className = 'deck-view-card';
-      item.textContent = cardId;
+      const img = document.createElement('img');
+      img.src = `assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${p.hero}/${cardId}.png`;
+      img.alt = cardId;
+      img.onerror = () => { img.style.display = 'none'; item.dataset.id = cardId; item.textContent = cardId; };
+      item.appendChild(img);
       list.appendChild(item);
     });
   } else {
     const empty = document.createElement('div');
-    empty.className = 'deck-view-card';
-    empty.textContent = 'Пусто';
+    empty.className = 'deck-view-card deck-view-empty';
+    empty.textContent = lang === 'de' ? 'Leer' : 'Пусто';
     list.appendChild(empty);
   }
 
@@ -234,6 +288,15 @@ function updateSessionBar() {
     document.getElementById('sb-code-display').textContent = sessionCode;
     _initNameInput(document.getElementById('sb-name-input'));
 
+    const goldInput = document.getElementById('sb-gold-input');
+    if (goldInput) {
+      goldInput.value = getMyGold();
+      if (!goldInput.dataset.initialized) {
+        goldInput.dataset.initialized = '1';
+        goldInput.addEventListener('change', () => setMyGold(goldInput.value));
+      }
+    }
+
     const list = document.getElementById('sb-players-list');
     if (list) {
       list.innerHTML = '';
@@ -242,7 +305,7 @@ function updateSessionBar() {
         chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
 
         const label = document.createElement('span');
-        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
+        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'} 🪙${p.gold ?? 0}`;
         chip.appendChild(label);
 
         if (pid !== playerId && p.hero) {
