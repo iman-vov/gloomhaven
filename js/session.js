@@ -145,14 +145,6 @@ function updatePlayerName(name) {
 
 // ─── Session bar UI ────────────────────────────────────
 
-function joinSessionFromMobile() {
-  const input = document.getElementById('sb-m-code-input');
-  const code = (input ? input.value : '').toUpperCase().trim();
-  if (code.length !== 4) return;
-  _connectSession(code);
-  document.getElementById('tab-nav').classList.remove('mobile-open');
-}
-
 function _initNameInput(el) {
   if (!el || el.dataset.initialized) return;
   el.dataset.initialized = '1';
@@ -199,46 +191,6 @@ function updateSessionBar() {
     }
   }
 
-  // ── Mobile ──
-  const mDisc = document.getElementById('sb-m-disconnected');
-  const mConn = document.getElementById('sb-m-connected');
-  if (mDisc) {
-    const mJoinBtn = mDisc.querySelector('.sb-m-btn:not(.sb-m-btn-new)');
-    const mCreateBtn = mDisc.querySelector('.sb-m-btn-new');
-    const mCodeInput = document.getElementById('sb-m-code-input');
-    const mLeaveBtn = document.querySelector('.sb-m-leave');
-    const mLabel = document.getElementById('sb-m-label');
-    if (mJoinBtn) mJoinBtn.textContent = de ? 'Beitreten' : 'Войти';
-    if (mCreateBtn) mCreateBtn.textContent = de ? '+ Sitzung erstellen' : '+ Создать сессию';
-    if (mCodeInput) mCodeInput.placeholder = de ? 'Code' : 'Код';
-    if (mLeaveBtn) mLeaveBtn.textContent = de ? 'Verlassen' : 'Выйти';
-    if (mLabel) mLabel.textContent = de ? 'Sitzung:' : 'Сессия:';
-
-    if (sessionCode) {
-      mDisc.classList.add('hidden');
-      mConn.classList.remove('hidden');
-      const mCodeDisplay = document.getElementById('sb-m-code-display');
-      if (mCodeDisplay) mCodeDisplay.textContent = sessionCode;
-      const mNameInput = document.getElementById('sb-m-name-input');
-      if (mNameInput) {
-        mNameInput.placeholder = de ? 'Name' : 'Ваше имя';
-        _initNameInput(mNameInput);
-      }
-      const mList = document.getElementById('sb-m-players-list');
-      if (mList) {
-        mList.innerHTML = '';
-        Object.entries(sessionPlayers).forEach(([pid, p]) => {
-          const chip = document.createElement('div');
-          chip.className = 'sb-m-player-chip' + (pid === playerId ? ' sb-me' : '');
-          chip.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
-          mList.appendChild(chip);
-        });
-      }
-    } else {
-      mDisc.classList.remove('hidden');
-      mConn.classList.add('hidden');
-    }
-  }
 }
 
 function initSession() {

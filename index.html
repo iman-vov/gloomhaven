@@ -75,23 +75,6 @@
 
   <button id="nav-hamburger" onclick="toggleMobileNav()">☰ <span id="nav-current-label">Герои</span> ▾</button>
 
-  <!-- Session (mobile only, inside burger) -->
-  <div id="session-nav-mobile">
-    <div id="sb-m-disconnected">
-      <input id="sb-m-code-input" class="sb-m-code-input" maxlength="4" placeholder="Код" oninput="this.value=this.value.toUpperCase()">
-      <button class="sb-m-btn" onclick="joinSessionFromMobile()">Войти</button>
-      <button class="sb-m-btn sb-m-btn-new" onclick="createSession()">+ Создать сессию</button>
-    </div>
-    <div id="sb-m-connected" class="hidden">
-      <div class="sb-m-row">
-        <span id="sb-m-label">Сессия:</span>
-        <strong id="sb-m-code-display"></strong>
-        <button class="sb-m-btn sb-m-leave" onclick="leaveSession()">Выйти</button>
-      </div>
-      <input id="sb-m-name-input" class="sb-m-name-input" maxlength="14" placeholder="Ваше имя">
-      <div id="sb-m-players-list"></div>
-    </div>
-  </div>
 
   <button class="tab-btn active" onclick="switchTab('heroes')" id="tabbtn-heroes">🃏 Герои</button>
 
