@@ -470,6 +470,7 @@ function toggleCardInDeck() {
   else { if (deck.length >= max) return; deck.push(openCardId); }
 
   setDeck(activeChar, deck);
+  if (typeof syncDeckToFirebase === 'function') syncDeckToFirebase(activeChar);
 
   renderDeckCounter(); renderCardsGrid();
 
@@ -502,6 +503,7 @@ function toggleDeckFromThumb(card) {
   }
 
   setDeck(activeChar, deck);
+  if (typeof syncDeckToFirebase === 'function') syncDeckToFirebase(activeChar);
 
   renderDeckCounter(); renderCardsGrid();
 
@@ -514,6 +516,7 @@ function toggleDeckFromThumb(card) {
 function clearDeck() {
   if (!activeChar) return;
   setDeck(activeChar, []);
+  if (typeof syncDeckToFirebase === 'function') syncDeckToFirebase(activeChar);
   renderDeckCounter();
   renderCardsGrid();
   if (cardsView === 'deck') renderDeckGrid();

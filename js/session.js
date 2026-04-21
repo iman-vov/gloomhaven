@@ -1,15 +1,15 @@
-// ─── Player identity ───────────────────────────────────
+// Player identity
 let playerId = null;
 
 let sessionCode = null;
 let sessionRef = null;
-let sessionPlayers = {}; // {playerId: {name, hero, joinedAt}}
+let sessionPlayers = {}; // {playerId: {name, hero, joinedAt, deck}}
 
-// ─── Session create / join / leave ─────────────────────
+// Session create / join / leave
 
 function generateSessionCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({length: 4}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
 
 function createSession() {
@@ -33,21 +33,21 @@ function _connectSession(code) {
   const savedName = lsGet('gh_player_name', null);
   const defaultName = (lang === 'de' ? 'Spieler' : 'Игрок') + ' ' + (Object.keys(sessionPlayers).length + 1);
 
-  // Register this player
   sessionRef.child(`players/${playerId}`).update({
     name: savedName || defaultName,
     hero: null,
     joinedAt: Date.now()
   });
 
-  // Listen to all players
+  const myHero = lsGet('activeChar', null);
+  if (myHero) syncDeckToFirebase(myHero);
+
   sessionRef.child('players').on('value', snap => {
     sessionPlayers = snap.val() || {};
     updateSessionBar();
     updateCharCards();
   });
 
-  // Listen to goals
   sessionRef.child('goals').on('value', snap => {
     const data = snap.val();
     if (data && JSON.stringify(data) !== JSON.stringify(drawState)) {
@@ -60,6 +60,9 @@ function _connectSession(code) {
 }
 
 function leaveSession() {
+  const overlay = document.getElementById('deck-view-overlay');
+  if (overlay) overlay.remove();
+
   if (sessionRef) {
     sessionRef.child(`players/${playerId}/hero`).set(null);
     sessionRef.off();
@@ -72,19 +75,20 @@ function leaveSession() {
   updateCharCards();
 }
 
-// ─── Hero claiming ─────────────────────────────────────
+// Hero claiming
 
 function sessionClaimHero(heroCode) {
   if (!sessionRef) return;
-  // Release previous hero of this player
   const prev = sessionPlayers[playerId]?.hero;
-  if (prev === heroCode) return; // already mine
-  // Check if taken by someone else
+  if (prev === heroCode) return;
+
   const takenBy = Object.entries(sessionPlayers).find(
     ([pid, p]) => p.hero === heroCode && pid !== playerId
   );
-  if (takenBy) return; // blocked
+  if (takenBy) return;
+
   sessionRef.child(`players/${playerId}/hero`).set(heroCode);
+  syncDeckToFirebase(heroCode);
 }
 
 function getMyHero() {
@@ -96,7 +100,7 @@ function getHeroOwner(heroCode) {
   return entry ? { id: entry[0], ...entry[1] } : null;
 }
 
-// ─── Sync draw state ───────────────────────────────────
+// Sync draw state
 
 function syncDrawState() {
   if (sessionRef && drawState !== null) {
@@ -104,7 +108,13 @@ function syncDrawState() {
   }
 }
 
-// ─── Update char cards (taken / available) ─────────────
+function syncDeckToFirebase(heroCode) {
+  if (!sessionRef || !heroCode) return;
+  const deck = getDeck(heroCode);
+  sessionRef.child(`players/${playerId}/deck`).set(deck);
+}
+
+// Update char cards (taken / available)
 
 function updateCharCards() {
   ['HA', 'DE', 'VW', 'RG'].forEach(code => {
@@ -117,7 +127,6 @@ function updateCharCards() {
     card.classList.toggle('char-taken', isTaken);
     card.classList.toggle('selected', isMine || (!sessionCode && activeChar === code));
 
-    // Badge
     let badge = card.querySelector('.char-session-badge');
     if (isTaken) {
       if (!badge) {
@@ -132,7 +141,7 @@ function updateCharCards() {
   });
 }
 
-// ─── Player name ───────────────────────────────────────
+// Player name
 
 function updatePlayerName(name) {
   name = name.trim();
@@ -143,7 +152,56 @@ function updatePlayerName(name) {
   }
 }
 
-// ─── Session bar UI ────────────────────────────────────
+function showPlayerDeck(pid) {
+  const p = sessionPlayers[pid];
+  if (!p) return;
+
+  const existing = document.getElementById('deck-view-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'deck-view-overlay';
+  overlay.onclick = () => overlay.remove();
+
+  const box = document.createElement('div');
+  box.className = 'deck-view-box';
+  box.addEventListener('click', e => e.stopPropagation());
+
+  const title = document.createElement('h3');
+  title.textContent = `Колода: ${p.name || '?'} (${p.hero || '?'})`;
+
+  const list = document.createElement('div');
+  list.className = 'deck-view-list';
+
+  const deck = Array.isArray(p.deck) ? p.deck : [];
+  if (deck.length) {
+    deck.forEach(cardId => {
+      const item = document.createElement('div');
+      item.className = 'deck-view-card';
+      item.textContent = cardId;
+      list.appendChild(item);
+    });
+  } else {
+    const empty = document.createElement('div');
+    empty.className = 'deck-view-card';
+    empty.textContent = 'Пусто';
+    list.appendChild(empty);
+  }
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'deck-view-close';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = () => overlay.remove();
+
+  box.appendChild(title);
+  box.appendChild(list);
+  box.appendChild(closeBtn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+// Session bar UI
 
 function _initNameInput(el) {
   if (!el || el.dataset.initialized) return;
@@ -157,40 +215,52 @@ function updateSessionBar() {
   const de = lang === 'de';
   const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
 
-  // ── Desktop ──
   const dDisc = document.getElementById('sb-d-disconnected');
   const dConn = document.getElementById('sb-d-connected');
-  if (dDisc) {
-    const joinBtn = document.getElementById('sb-join-btn');
-    const createBtn = document.getElementById('sb-create-btn');
-    const codeInput = document.getElementById('sb-code-input');
-    const leaveBtn = document.getElementById('sb-leave-btn');
-    if (joinBtn) joinBtn.textContent = de ? 'Beitreten' : 'Войти';
-    if (createBtn) createBtn.textContent = de ? '+ Neu' : '+ Новая';
-    if (codeInput) codeInput.placeholder = de ? 'Code' : 'Код';
-    if (leaveBtn) leaveBtn.title = de ? 'Verlassen' : 'Выйти';
+  if (!dDisc) return;
 
-    if (sessionCode) {
-      dDisc.classList.add('hidden');
-      dConn.classList.remove('hidden');
-      document.getElementById('sb-code-display').textContent = sessionCode;
-      _initNameInput(document.getElementById('sb-name-input'));
-      const list = document.getElementById('sb-players-list');
-      if (list) {
-        list.innerHTML = '';
-        Object.entries(sessionPlayers).forEach(([pid, p]) => {
-          const chip = document.createElement('div');
-          chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
-          chip.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
-          list.appendChild(chip);
-        });
-      }
-    } else {
-      dDisc.classList.remove('hidden');
-      dConn.classList.add('hidden');
+  const joinBtn = document.getElementById('sb-join-btn');
+  const createBtn = document.getElementById('sb-create-btn');
+  const codeInput = document.getElementById('sb-code-input');
+  const leaveBtn = document.getElementById('sb-leave-btn');
+  if (joinBtn) joinBtn.textContent = de ? 'Beitreten' : 'Войти';
+  if (createBtn) createBtn.textContent = de ? '+ Neu' : '+ Новая';
+  if (codeInput) codeInput.placeholder = de ? 'Code' : 'Код';
+  if (leaveBtn) leaveBtn.title = de ? 'Verlassen' : 'Выйти';
+
+  if (sessionCode) {
+    dDisc.classList.add('hidden');
+    dConn.classList.remove('hidden');
+    document.getElementById('sb-code-display').textContent = sessionCode;
+    _initNameInput(document.getElementById('sb-name-input'));
+
+    const list = document.getElementById('sb-players-list');
+    if (list) {
+      list.innerHTML = '';
+      Object.entries(sessionPlayers).forEach(([pid, p]) => {
+        const chip = document.createElement('div');
+        chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
+
+        const label = document.createElement('span');
+        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
+        chip.appendChild(label);
+
+        if (pid !== playerId && p.hero) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'sb-deck-view-btn';
+          btn.textContent = '👁';
+          btn.onclick = () => showPlayerDeck(pid);
+          chip.appendChild(btn);
+        }
+
+        list.appendChild(chip);
+      });
     }
+  } else {
+    dDisc.classList.remove('hidden');
+    dConn.classList.add('hidden');
   }
-
 }
 
 function initSession() {
