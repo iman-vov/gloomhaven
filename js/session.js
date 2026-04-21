@@ -305,7 +305,7 @@ function updateSessionBar() {
         chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
 
         const label = document.createElement('span');
-        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'} 🪙${p.gold ?? 0}`;
+        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
         chip.appendChild(label);
 
         if (pid !== playerId && p.hero) {
