@@ -1964,8 +1964,9 @@
 
   /* Header */
   #app-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
     padding: 8px 14px;
     padding-top: calc(8px + env(safe-area-inset-top));
@@ -1973,10 +1974,11 @@
 
   #app-header h1 {
     font-size: 0.9rem;
+    width: 100%;
   }
 
   #header-controls {
-    align-self: flex-end;
+    flex-shrink: 0;
   }
 
   /* Tab nav — hamburger menu */
@@ -2022,7 +2024,8 @@
 
   /* ─── Session in header (mobile) ─── */
   #session-bar-desktop {
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     padding: 0;
     justify-content: flex-start;
     font-size: 0.72rem;
