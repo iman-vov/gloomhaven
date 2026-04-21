@@ -3,7 +3,7 @@ let playerId = null;
 
 let sessionCode = null;
 let sessionRef = null;
-let sessionPlayers = {}; // {playerId: {name, hero, joinedAt, deck, gold}}
+let sessionPlayers = {}; // {playerId: {name, hero, joinedAt, deck, gold, items}}
 let sessionShopStock = null; // null = no session, use local shop logic
 
 // Session create / join / leave
@@ -44,10 +44,24 @@ function _connectSession(code) {
   const myHero = lsGet('activeChar', null);
   if (myHero) syncDeckToFirebase(myHero);
 
+  sessionRef.child(`players/${playerId}/items`).once('value').then(snap => {
+    if (!snap.exists()) {
+      const localItems = getInventory(playerId);
+      sessionRef.child(`players/${playerId}/items`).set(localItems);
+    }
+  });
+
   sessionRef.child('players').on('value', snap => {
     sessionPlayers = snap.val() || {};
+
+    Object.entries(sessionPlayers).forEach(([pid, p]) => {
+      if (Array.isArray(p.items)) setInventory(pid, p.items);
+    });
+
     updateSessionBar();
     updateCharCards();
+    if (typeof renderItemsGrid === 'function') renderItemsGrid();
+    if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
   });
 
   sessionRef.child('goals').on('value', snap => {
@@ -75,10 +89,11 @@ function _connectSession(code) {
 }
 
 function leaveSession() {
-  const deckOverlay = document.getElementById('deck-view-overlay');
-  if (deckOverlay) deckOverlay.remove();
-  const shopOverlay = document.getElementById('shop-choice-overlay');
-  if (shopOverlay) shopOverlay.remove();
+  const overlays = ['deck-view-overlay', 'shop-choice-overlay', 'item-transfer-overlay'];
+  overlays.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.remove();
+  });
 
   if (sessionRef) {
     sessionRef.child(`players/${playerId}/hero`).set(null);
@@ -148,6 +163,37 @@ function syncShopStockToFirebase(stock) {
 function getItemStock(itemId) {
   if (!sessionShopStock) return 99;
   return sessionShopStock[itemId] ?? 1;
+}
+
+// Session items
+
+function getSessionPlayerItems(pid) {
+  const remote = sessionPlayers[pid]?.items;
+  if (Array.isArray(remote)) return [...remote];
+  if (pid === playerId) return [...getInventory(playerId)];
+  return [];
+}
+
+function setSessionPlayerItems(pid, items) {
+  const normalized = Array.isArray(items) ? items : [];
+  setInventory(pid, normalized);
+  if (!sessionRef || !pid) return;
+  sessionRef.child(`players/${pid}/items`).set(normalized);
+}
+
+function getTransferTargets() {
+  return Object.entries(sessionPlayers).filter(([pid, p]) => pid !== playerId && p.hero);
+}
+
+function transferItemToPlayer(itemId, targetId) {
+  if (!sessionRef || !itemId || !targetId || targetId === playerId) return;
+
+  const myItems = getSessionPlayerItems(playerId).filter(id => id !== itemId);
+  const targetItems = getSessionPlayerItems(targetId);
+  if (!targetItems.includes(itemId)) targetItems.push(itemId);
+
+  setSessionPlayerItems(playerId, myItems);
+  setSessionPlayerItems(targetId, targetItems);
 }
 
 // Sync draw state
@@ -228,17 +274,13 @@ function showPlayerDeck(pid) {
     deck.forEach(cardId => {
       const item = document.createElement('div');
       item.className = 'deck-view-card';
-      const img = document.createElement('img');
-      img.src = `assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${p.hero}/${cardId}.png`;
-      img.alt = cardId;
-      img.onerror = () => { img.style.display = 'none'; item.dataset.id = cardId; item.textContent = cardId; };
-      item.appendChild(img);
+      item.textContent = cardId;
       list.appendChild(item);
     });
   } else {
     const empty = document.createElement('div');
-    empty.className = 'deck-view-card deck-view-empty';
-    empty.textContent = lang === 'de' ? 'Leer' : 'Пусто';
+    empty.className = 'deck-view-card';
+    empty.textContent = 'Пусто';
     list.appendChild(empty);
   }
 
@@ -305,7 +347,7 @@ function updateSessionBar() {
         chip.className = 'sb-player-chip' + (pid === playerId ? ' sb-me' : '');
 
         const label = document.createElement('span');
-        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'}`;
+        label.textContent = `${p.hero ? heroIcons[p.hero] : '❓'} ${p.name || '?'} 🪙${p.gold ?? 0}`;
         chip.appendChild(label);
 
         if (pid !== playerId && p.hero) {
