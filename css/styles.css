@@ -251,7 +251,7 @@
   #tab-nav button:hover:not(.active) { color: var(--text); }
 
   #nav-hamburger { display: none; }
-  #session-nav-mobile { display: none !important; }
+  #session-nav-mobile { display: none; }
 
   /* â”€â”€â”€ Main Content â”€â”€â”€ */
   #main { padding: 16px; max-width: 900px; margin: 0 auto; }
@@ -1999,7 +1999,7 @@
 
   #tab-nav {
     flex-direction: column;
-    overflow-x: visible;
+    overflow: visible;
     position: sticky;
     top: 0;
   }
@@ -2020,8 +2020,13 @@
     align-items: center;
   }
 
-  /* ─── Session in burger (mobile) ─── */
-  #session-bar-desktop { display: none; }
+  /* ─── Session in header (mobile) ─── */
+  #session-bar-desktop {
+    width: 100%;
+    padding: 0;
+    justify-content: flex-start;
+    font-size: 0.72rem;
+  }
 
   #session-nav-mobile {
     display: none;
