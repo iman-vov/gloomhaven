@@ -1,4 +1,4 @@
-﻿  /* â”€â”€â”€ CSS Variables â”€â”€â”€ */
+  /* â”€â”€â”€ CSS Variables â”€â”€â”€ */
   :root {
     --bg:        #0e0b07;
     --bg2:       #1a1410;
@@ -372,6 +372,31 @@
     font-size: 0.9rem;
     color: var(--gold2);
   }
+  .party-hero-face {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border2);
+    flex-shrink: 0;
+  }
+  .party-player-toggle {
+    width: 100%;
+    justify-content: space-between;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .party-player-toggle:hover {
+    color: var(--gold);
+  }
+  .party-player-arrow {
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
   .party-gold-row {
     display: flex;
     align-items: center;
@@ -415,6 +440,181 @@
     font-size: 0.78rem;
     padding: 6px 14px;
     cursor: pointer;
+  }
+  #tab-party {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mission-card-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .mission-card-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .mission-card-img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 2px solid transparent;
+    display: block;
+    background: var(--bg2);
+    cursor: zoom-in;
+  }
+  .mission-card-img.state-played {
+    border-color: var(--gold);
+    opacity: 0.45;
+  }
+  .mission-card-img.state-lost {
+    opacity: 0.3;
+    filter: grayscale(1);
+  }
+  .mission-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 3px;
+    width: 100%;
+  }
+  .btn-card-play,
+  .btn-card-return,
+  .btn-card-lose {
+    flex: 1 1 48%;
+    min-height: 32px;
+    font-size: 0.74rem;
+    padding: 5px 7px;
+    border-radius: 5px;
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    cursor: pointer;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+  }
+  .btn-card-play:hover {
+    color: var(--gold);
+    border-color: var(--gold);
+  }
+  .btn-card-return:hover {
+    color: var(--gold2);
+    border-color: var(--gold2);
+  }
+  .btn-card-lose:hover {
+    color: #e05555;
+    border-color: #e05555;
+  }
+  .party-section-label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-bottom: 4px;
+  }
+  .btn-rest {
+    margin-top: 10px;
+    width: 100%;
+    padding: 8px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .btn-rest:hover { border-color: var(--gold); }
+  #rest-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rest-card-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
+    padding: 10px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+  }
+  .rest-card-id {
+    display: block;
+    color: var(--gold);
+    font-size: 0.76rem;
+    margin-bottom: 2px;
+  }
+  .rest-card-name {
+    display: block;
+    color: var(--text);
+    font-size: 0.9rem;
+  }
+  .rest-card-btn:hover {
+    border-color: #e05555;
+    color: #e05555;
+  }
+  #lose-confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .lose-confirm-box {
+    width: min(320px, 90vw);
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 18px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    text-align: center;
+    max-width: 300px;
+  }
+  .lose-confirm-card-name {
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+  .lose-confirm-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+  .lose-confirm-yes,
+  .lose-confirm-no {
+    padding: 9px 22px;
+    border-radius: 6px;
+    background: var(--bg2);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+  .lose-confirm-yes {
+    border: 1px solid #e05555;
+    color: #e05555;
+  }
+  .lose-confirm-yes:hover { background: rgba(224,85,85,0.15); }
+  .lose-confirm-no {
+    border: 1px solid var(--border2);
+    color: var(--text-dim);
+  }
+  .lose-confirm-no:hover {
+    border-color: var(--gold);
+    color: var(--gold);
   }
 
   #app-header h1 {
@@ -637,6 +837,7 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 1.6rem;
     border: 2px solid var(--border2);
+    object-fit: cover;
   }
   .char-card-name {
     font-family: 'Cinzel', serif;
@@ -814,6 +1015,19 @@
     transition: background 0.2s;
   }
   #btn-clear-deck:hover { background: rgba(192,57,43,0.15); }
+  #btn-start-mission {
+    display: block;
+    margin: 8px 0;
+    padding: 8px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--gold);
+    border-radius: 6px;
+    color: var(--gold);
+    font-family: 'Cinzel', serif;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  #btn-start-mission:hover { background: var(--bg3); }
 
   /* Card Modal */
   #card-modal {
@@ -2416,6 +2630,10 @@
   /* ── Etap 3: Shop ── */
   #items-grid, #owned-grid {
     grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  .mission-card-list {
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
   }
 

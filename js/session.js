@@ -94,7 +94,7 @@ function _connectSession(code) {
 }
 
 function leaveSession() {
-  const overlays = ['deck-view-overlay', 'shop-choice-overlay', 'item-transfer-overlay'];
+  const overlays = ['deck-view-overlay', 'shop-choice-overlay', 'item-transfer-overlay', 'rest-overlay'];
   overlays.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.remove();
@@ -216,6 +216,148 @@ function syncDeckToFirebase(heroCode) {
   sessionRef.child(`players/${playerId}/deck`).set(deck);
 }
 
+function startMissionWithDeck() {
+  if (!sessionRef || !playerId) return;
+  const heroCode = (typeof getMyHero === 'function' ? getMyHero() : null) || activeChar;
+  if (!heroCode) return;
+
+  const deck = getDeck(heroCode);
+  if (!deck || deck.length === 0) return;
+
+  const initialStates = {};
+  deck.forEach(id => { initialStates[id] = 'hand'; });
+
+  sessionRef.child(`players/${playerId}/missionDeck`).set(deck);
+  sessionRef.child(`players/${playerId}/cardStates`).set(initialStates);
+}
+
+function setCardState(cardId, state) {
+  if (!sessionRef || !playerId || !cardId) return;
+  sessionRef.child(`players/${playerId}/cardStates/${cardId}`).set(state);
+}
+
+function getMyCardStates() {
+  const p = sessionPlayers[playerId] || {};
+  return p.cardStates || {};
+}
+
+function getMyMissionDeck() {
+  const p = sessionPlayers[playerId] || {};
+  return Array.isArray(p.missionDeck) ? p.missionDeck : [];
+}
+
+function getMissionCardName(cardId) {
+  const data = typeof getCardData === 'function' ? getCardData(cardId) : null;
+  if (!data) return cardId;
+  return lang === 'de' ? (data.nameDe || cardId) : (data.nameRu || cardId);
+}
+
+function doRest() {
+  if (!sessionRef || !playerId) return;
+  const states = getMyCardStates();
+  const deck = getMyMissionDeck();
+  const playedCards = deck.filter(id => states[id] === 'played');
+
+  if (playedCards.length === 0) {
+    const reset = {};
+    deck.forEach(id => {
+      reset[id] = states[id] === 'lost' ? 'lost' : 'hand';
+    });
+    sessionRef.child(`players/${playerId}/cardStates`).update(reset);
+    return;
+  }
+
+  _showRestOverlay(playedCards, lostCardId => {
+    const updates = {};
+    deck.forEach(id => {
+      if (states[id] === 'lost') updates[id] = 'lost';
+      else if (id === lostCardId) updates[id] = 'lost';
+      else updates[id] = 'hand';
+    });
+    sessionRef.child(`players/${playerId}/cardStates`).update(updates);
+  });
+}
+
+function _showRestOverlay(playedCards, callback) {
+  const existing = document.getElementById('rest-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'rest-overlay';
+  overlay.onclick = () => overlay.remove();
+
+  const box = document.createElement('div');
+  box.className = 'deck-view-box';
+  box.addEventListener('click', e => e.stopPropagation());
+
+  const title = document.createElement('h3');
+  title.textContent = lang === 'de' ? 'Wähle 1 Karte zum Ablegen' : 'Выберите карту для сброса';
+  box.appendChild(title);
+
+  playedCards.forEach(cardId => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'rest-card-btn';
+    btn.innerHTML = `<span class="rest-card-id">${cardId}</span><span class="rest-card-name">${getMissionCardName(cardId)}</span>`;
+    btn.onclick = () => {
+      overlay.remove();
+      callback(cardId);
+    };
+    box.appendChild(btn);
+  });
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+function _showLoseConfirmOverlay(cardId, callback) {
+  const existing = document.getElementById('lose-confirm-overlay');
+  if (existing) existing.remove();
+
+  const name = getMissionCardName(cardId);
+
+  const overlay = document.createElement('div');
+  overlay.id = 'lose-confirm-overlay';
+  overlay.onclick = () => overlay.remove();
+
+  const box = document.createElement('div');
+  box.className = 'deck-view-box lose-confirm-box';
+  box.addEventListener('click', e => e.stopPropagation());
+
+  const title = document.createElement('h3');
+  title.textContent = lang === 'de' ? 'Karte verlieren?' : 'Потерять карту?';
+
+  const cardLabel = document.createElement('div');
+  cardLabel.className = 'lose-confirm-card-name';
+  cardLabel.textContent = `${cardId} — ${name}`;
+
+  const btnRow = document.createElement('div');
+  btnRow.className = 'lose-confirm-btns';
+
+  const btnConfirm = document.createElement('button');
+  btnConfirm.type = 'button';
+  btnConfirm.className = 'lose-confirm-yes';
+  btnConfirm.textContent = lang === 'de' ? 'Verlieren' : 'Потерять';
+  btnConfirm.onclick = () => {
+    overlay.remove();
+    callback();
+  };
+
+  const btnCancel = document.createElement('button');
+  btnCancel.type = 'button';
+  btnCancel.className = 'lose-confirm-no';
+  btnCancel.textContent = lang === 'de' ? 'Abbrechen' : 'Отмена';
+  btnCancel.onclick = () => overlay.remove();
+
+  btnRow.appendChild(btnConfirm);
+  btnRow.appendChild(btnCancel);
+  box.appendChild(title);
+  box.appendChild(cardLabel);
+  box.appendChild(btnRow);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
 // Update char cards (taken / available)
 
 function updateCharCards() {
@@ -333,28 +475,88 @@ function renderPartyTab() {
     return;
   }
 
-  const heroIcons = { HA: '🪓', DE: '💥', VW: '🌀', RG: '🛡' };
-  const cardsHtml = Object.entries(sessionPlayers).map(([pid, p]) => {
+  const heroFaceImg = code => code
+    ? `<img src="assets/heroes/${code}_face.png" alt="${code}" class="party-hero-face">`
+    : '❓';
+  const stateLabels = lang === 'de'
+    ? { hand: 'Auf der Hand', played: 'Gespielt', lost: 'Verloren' }
+    : { hand: 'На руке', played: 'Сыграны', lost: 'Потрачены' };
+
+  function renderMissionCard(cardId, state, isMe, heroCode) {
+    const imgSrc = `./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/${heroCode}/${cardId}.png`;
+    const actions = isMe && state !== 'lost'
+      ? `<div class="mission-card-actions">
+          ${state === 'hand' ? `<button class="btn-card-play" type="button" data-card-play="${cardId}">${lang === 'de' ? 'Spielen' : 'Сыграть'}</button>` : ''}
+          ${state === 'played' ? `<button class="btn-card-return" type="button" data-card-return="${cardId}">${lang === 'de' ? 'Zurück' : 'Вернуть'}</button>` : ''}
+          <button class="btn-card-lose" type="button" data-card-lose="${cardId}">${lang === 'de' ? 'Verlieren' : 'Потерять'}</button>
+        </div>`
+      : '';
+
+    return `<div class="mission-card-item">
+      <img class="mission-card-img state-${state}" src="${imgSrc}" alt="${cardId}" data-card-preview="${imgSrc}">
+      ${actions}
+    </div>`;
+  }
+
+  function renderMissionDeck(p, isMe) {
+    const deck = Array.isArray(p.missionDeck) ? p.missionDeck : [];
+    const states = p.cardStates || {};
+
+    if (!deck.length) {
+      return `<div class="party-no-items">${lang === 'de' ? 'Noch kein Deck gewählt' : 'Колода ещё не выбрана'}</div>`;
+    }
+
+    const groups = { hand: [], played: [], lost: [] };
+    deck.forEach(cardId => {
+      const state = states[cardId] || 'hand';
+      if (groups[state]) groups[state].push(cardId);
+      else groups.hand.push(cardId);
+    });
+
+    const sections = ['hand', 'played', 'lost'].map(state => `
+      <div class="party-mission-section">
+        <div class="party-section-label">${stateLabels[state]} (${groups[state].length})</div>
+        <div class="mission-card-list">
+          ${groups[state].length
+            ? groups[state].map(cardId => renderMissionCard(cardId, state, isMe, p.hero || '')).join('')
+            : `<span class="party-no-items">${lang === 'de' ? 'keine' : 'нет'}</span>`}
+        </div>
+      </div>`).join('');
+
+    const restBtn = isMe
+      ? `<button class="btn-rest" type="button" data-party-rest="1">${lang === 'de' ? '🌙 Rast' : '🌙 Отдых'}</button>`
+      : '';
+
+    return `${sections}${restBtn}`;
+  }
+
+  const playerEntries = Object.entries(sessionPlayers).sort(([pidA], [pidB]) => {
+    if (pidA === playerId) return -1;
+    if (pidB === playerId) return 1;
+    return 0;
+  });
+
+  const cardsHtml = playerEntries.map(([pid, p]) => {
     const isMe = pid === playerId;
-    const items = getSessionPlayerItems(pid);
-    const itemThumbs = items.length
-      ? items.map(id => `<img class="party-item-thumb" src="./assets/cards/${lang === 'de' ? 'deu' : 'ru'}/items/${id}.png" alt="${id}">`).join('')
-      : `<div class="party-no-items">${lang === 'de' ? 'keine Gegenstände' : 'нет предметов'}</div>`;
+    const heroLabel = p.hero ? charName(p.hero) : '---';
+    const bodyId = `party-player-body-${pid}`;
 
     const goldBlock = isMe
       ? `<div class="party-gold-row"><span>🪙</span><input class="party-gold-input" type="number" min="0" max="999" value="${p.gold ?? 0}" data-party-gold="${pid}"></div>`
       : `<div class="party-gold-row"><span>🪙 ${p.gold ?? 0}</span></div>`;
 
-    const deckBtn = p.hero
-      ? `<button class="party-deck-btn" type="button" data-party-deck="${pid}">👁 ${lang === 'de' ? 'Deck ansehen' : 'Переглянути колоду'}</button>`
-      : '';
-
     return `
       <div class="party-player-card${isMe ? ' party-me' : ''}">
-        <div class="party-player-header">${p.hero ? heroIcons[p.hero] : '❓'} ${p.hero || '---'} ${p.name || '?'}</div>
-        ${goldBlock}
-        <div class="party-items-row">${itemThumbs}</div>
-        ${deckBtn}
+        ${isMe
+          ? `<div class="party-player-header">${heroFaceImg(p.hero)} ${heroLabel}</div>`
+          : `<button class="party-player-header party-player-toggle" type="button" data-party-toggle="${bodyId}">
+              <span>${heroFaceImg(p.hero)} ${heroLabel}</span>
+              <span class="party-player-arrow">▶</span>
+            </button>`}
+        <div id="${bodyId}" class="party-player-body${isMe ? '' : ' hidden'}">
+          ${goldBlock}
+          ${renderMissionDeck(p, isMe)}
+        </div>
       </div>`;
   }).join('');
 
@@ -366,8 +568,39 @@ function renderPartyTab() {
     input.addEventListener('change', () => setMyGold(parseInt(input.value, 10) || 0));
   });
 
-  content.querySelectorAll('[data-party-deck]').forEach(btn => {
-    btn.addEventListener('click', () => showPlayerDeck(btn.dataset.partyDeck));
+  content.querySelectorAll('[data-party-toggle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const body = document.getElementById(btn.dataset.partyToggle);
+      const arrow = btn.querySelector('.party-player-arrow');
+      if (!body) return;
+      body.classList.toggle('hidden');
+      if (arrow) arrow.textContent = body.classList.contains('hidden') ? '▶' : '▼';
+    });
+  });
+
+  content.querySelectorAll('[data-card-play]').forEach(btn => {
+    btn.addEventListener('click', () => setCardState(btn.dataset.cardPlay, 'played'));
+  });
+
+  content.querySelectorAll('[data-card-lose]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cardId = btn.dataset.cardLose;
+      _showLoseConfirmOverlay(cardId, () => setCardState(cardId, 'lost'));
+    });
+  });
+
+  content.querySelectorAll('[data-card-return]').forEach(btn => {
+    btn.addEventListener('click', () => setCardState(btn.dataset.cardReturn, 'hand'));
+  });
+
+  content.querySelectorAll('[data-card-preview]').forEach(img => {
+    img.addEventListener('click', () => {
+      if (typeof openImgLightbox === 'function') openImgLightbox(img.dataset.cardPreview);
+    });
+  });
+
+  content.querySelectorAll('[data-party-rest]').forEach(btn => {
+    btn.addEventListener('click', () => doRest());
   });
 }
 

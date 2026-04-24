@@ -57,11 +57,11 @@ function selectChar(code) {
 
   const c = CHARS[code];
 
-  document.getElementById('active-char-icon').textContent = c.icon;
-
-  document.getElementById('active-char-icon').style.background = c.bg;
-
-  document.getElementById('active-char-icon').style.borderColor = c.color;
+  const iconEl = document.getElementById('active-char-icon');
+  iconEl.src = `assets/heroes/${code}_face.png`;
+  iconEl.alt = code;
+  iconEl.style.display = 'block';
+  iconEl.style.borderColor = c.color;
 
   document.getElementById('active-char-name').textContent = charName(code);
 
@@ -275,11 +275,23 @@ function renderDeckGrid() {
 
   const empty = document.getElementById('deck-empty');
 
+  const existingStartBtn = document.getElementById('btn-start-mission');
+  if (existingStartBtn) existingStartBtn.remove();
+
   grid.innerHTML = '';
 
   if (!deck.length) { empty.classList.remove('hidden'); return; }
 
   empty.classList.add('hidden');
+
+  if (sessionCode && activeChar && deck.length) {
+    const startBtn = document.createElement('button');
+    startBtn.id = 'btn-start-mission';
+    startBtn.type = 'button';
+    startBtn.textContent = lang === 'de' ? '▶ Mit diesem Deck spielen' : '▶ Грати з цією колодою';
+    startBtn.onclick = () => startMissionWithDeck();
+    grid.parentNode.insertBefore(startBtn, grid);
+  }
 
   deck.forEach(id => {
 
