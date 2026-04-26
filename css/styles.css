@@ -2407,6 +2407,19 @@
   .player-right-blocks {
     display: block;
   }
+  .player-right-blocks .player-section {
+    text-align: center;
+  }
+  .player-right-blocks .player-section h3 {
+    text-align: center;
+  }
+  .player-right-blocks .mission-counter-row {
+    justify-content: center;
+  }
+  .player-right-blocks .player-section button {
+    display: block;
+    margin: 0 auto;
+  }
   .player-hero-header {
     display: flex;
     align-items: center;
@@ -2425,7 +2438,7 @@
     border: 2px solid var(--border2);
     flex-shrink: 0;
   }
-  .player-hero-info { flex: 1; min-width: 0; }
+  .player-hero-info { flex: 1; min-width: 0; max-width: 100%; }
   .player-hero-name {
     font-family: 'Cinzel', serif;
     color: var(--gold2);
@@ -2437,6 +2450,108 @@
     font-size: 0.9rem;
     line-height: 1.45;
   }
+  .player-stats-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 8px;
+  }
+  .player-stat-pill {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 0.88rem;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .player-stat-pill strong { color: var(--gold2); }
+  .xp-star { color: #ffffff; }
+  .btn-correct-stats {
+    background: transparent;
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.72rem;
+    padding: 4px 10px;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  .btn-correct-stats:hover { border-color: var(--gold); color: var(--gold); }
+  .player-hero-desc {
+    display: none;
+    font-family: 'Crimson Text', Georgia, serif;
+    font-style: italic;
+    font-size: 0.83rem;
+    line-height: 1.55;
+    color: var(--text-dim);
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0) 100%);
+    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0) 100%);
+    overflow: hidden;
+    align-self: stretch;
+  }
+  #correct-stats-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 1100;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #correct-stats-overlay .deck-view-box {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  #correct-stats-overlay h3 {
+    margin: 0 0 16px;
+    font-family: 'Cinzel', serif;
+    color: var(--gold);
+    text-align: center;
+  }
+  .correct-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .correct-stats-label {
+    font-size: 0.9rem;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+  .correct-stats-counter {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .correct-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--gold);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .correct-btn:hover { background: var(--gold); color: var(--bg); }
+  .btn-mission-go-party {
+    display: block;
+    width: 100%;
+    margin: 16px 0 8px;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--gold2);
+    border-radius: 8px;
+    color: var(--gold2);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+  .btn-mission-go-party:hover { background: var(--gold2); color: var(--bg); }
   .player-section {
     background: var(--bg2);
     border: 1px solid var(--border);
@@ -2459,21 +2574,47 @@
       margin-bottom: 14px;
     }
     .player-top-row .player-hero-header {
-      flex: 0 0 260px;
+      flex: 1;
       margin-bottom: 0;
     }
-    .player-right-blocks {
+    .player-top-row .player-hero-info {
+      flex: 0 0 auto;
+      max-width: none;
+    }
+    #player-hero-desc {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       flex: 1;
       min-width: 0;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      padding-left: 14px;
+      border-left: 1px solid var(--border);
+    }
+    .player-right-blocks {
+      flex: 0 0 220px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
       gap: 12px;
       align-self: stretch;
     }
     .player-right-blocks .player-section {
       margin-bottom: 0;
-      min-width: 0;
-      height: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .player-right-blocks .player-section h3 {
+      text-align: center;
+    }
+    .player-right-blocks .mission-counter-row {
+      justify-content: center;
+    }
+    .player-right-blocks .player-section button {
+      width: 100%;
     }
   }
   .reward-inputs {

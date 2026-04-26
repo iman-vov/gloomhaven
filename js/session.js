@@ -1287,7 +1287,7 @@ function renderPartyTab() {
         </div>
         <div class="party-counter">
           <button type="button" data-counter-dec="missionXp">-</button>
-          <span title="XP">&#10036; XP ${xp}</span>
+          <span title="XP"><span class="xp-star">✸</span> XP ${xp}</span>
           <button type="button" data-counter-inc="missionXp">+</button>
         </div>
       </div>`;

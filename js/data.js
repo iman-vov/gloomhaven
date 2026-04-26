@@ -12,6 +12,9 @@ const CHARS = {
 
     nameRu: 'Тесак', nameDe: 'Axtwerfer', sub: 'Inox Hatchet · Brown',
 
+    descRu: 'Инокс-Топорщик — опасный боец дальнего боя со страстью к метанию топоров и редким талантом злопамятности. Охотник на людей и зверей — лучше не вставать у него на пути.',
+    descDe: 'Der Inox-Hatchet ist ein gefährlicher Fernkämpfer mit einer Vorliebe fürs Axtwerfen und einem seltenen Groll-Talent. Ein Jäger von Menschen und Tieren – wer ihn reizt, bereut es.',
+
     cards: buildCardList('HA', {
 
       'Tut.A': [2,3,4,5,6,7], 'Tut.B': [8,9],
@@ -31,6 +34,9 @@ const CHARS = {
     icon: '💥', color: 'var(--col-de)', bg: '#2e1a08',
 
     nameRu: 'Подрывник', nameDe: 'Sprengmeisterin', sub: 'Quatryl Demolitionist · Orange',
+
+    descRu: 'Усиливая своё небольшое тело опасными нестабильными механизмами, Кватрил-Подрывник — сила, с которой нельзя не считаться. Уничтожает любые препятствия и опустошает врагов, превращая обломки в оружие.',
+    descDe: 'Mit gefährlich instabilen Konstruktionen rüstet die Quatryl-Sprengmeisterin ihren kleinen Körper auf. Sie zerstört jedes Hindernis und nutzt die Trümmer, um Feinde auf dem Schlachtfeld zu verwüsten.',
 
     cards: buildCardList('DE', {
 
@@ -52,6 +58,9 @@ const CHARS = {
 
     nameRu: 'Жрица Пустоты', nameDe: 'Leerehüterin', sub: 'Human Voidwarden · Grey',
 
+    descRu: 'После встречи с Пустотой в детстве Человек-Жрица Пустоты научилась использовать её магию. Управляет мыслями союзников и врагов, даруя исцеление и силу — но всегда за высокую цену.',
+    descDe: 'Nach ihrer Begegnung mit der Leere als Kind lernte die Leerehüterin, deren Magie zu nutzen. Sie manipuliert Gedanken von Verbündeten und Feinden, gewährt Heilung und Stärke – doch stets zu einem hohen Preis.',
+
     cards: buildCardList('VW', {
 
       'Tut.A': [143,144,145,146,147,148], 'Tut.B': [149,150],
@@ -71,6 +80,9 @@ const CHARS = {
     icon: '🛡', color: 'var(--col-rg)', bg: '#200e0e',
 
     nameRu: 'Алый гвардеец', nameDe: 'Rotgardist', sub: 'Valrath Red Guard · Red',
+
+    descRu: 'Защищённый красной бронёй, Валрат-Алый Гвардеец управляет полем боя, прикрывая союзников и противостоя нескольким врагам разом. Цепной серп и щит держат противника на расстоянии до решающего удара.',
+    descDe: 'In roter Rüstung manipuliert die Valrath-Rotgardist das Schlachtfeld, schützt Verbündete und stellt sich mehreren Gegnern zugleich. Kettensichel und Schild halten Feinde auf Abstand bis zum tödlichen Schlag.',
 
     cards: buildCardList('RG', {
 

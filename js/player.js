@@ -391,9 +391,14 @@ async function renderPlayerTab() {
     level < 9 ? ' / ' + XP_THRESHOLDS[level] : (lang === 'de' ? ' (max.)' : ' (макс.)');
   document.getElementById('player-gold-display').textContent = getMyGold();
   document.getElementById('player-mission-count').value = missionCount;
+  const descEl = document.getElementById('player-hero-desc');
+  if (descEl && CHARS && CHARS[activeChar]) {
+    descEl.textContent = lang === 'de' ? (CHARS[activeChar].descDe || '') : (CHARS[activeChar].descRu || '');
+  } else if (descEl) {
+    descEl.textContent = '';
+  }
 
   document.getElementById('player-hero-header').classList.remove('hidden');
-  document.getElementById('player-reward-section').classList.remove('hidden');
   document.getElementById('player-mission-section').classList.remove('hidden');
   document.getElementById('player-pool-section').classList.remove('hidden');
   document.getElementById('player-deck-section').classList.remove('hidden');
@@ -410,7 +415,6 @@ function hidePlayerSections() {
   [
     'player-empty',
     'player-hero-header',
-    'player-reward-section',
     'player-mission-section',
     'player-pool-section',
     'player-deck-section',
@@ -753,5 +757,65 @@ function takeToMission() {
   if (deck.length < max) return;
   if (typeof startMissionWithDeck === 'function') startMissionWithDeck();
   if (typeof renderPartyTab === 'function') renderPartyTab();
-  if (typeof switchTab === 'function') switchTab('party');
+  if (typeof switchTab === 'function') switchTab('missions');
+}
+
+function openCorrectStatsModal() {
+  if (!activeChar) return;
+  const de = lang === 'de';
+  const currentXp = parseInt(document.getElementById('player-xp-display').textContent, 10) || 0;
+  const currentGold = getMyGold ? getMyGold() : 0;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'correct-stats-overlay';
+  overlay.innerHTML = `
+    <div class="deck-view-box" style="max-width:320px;width:95%;">
+      <h3>${de ? '✏ Korrigieren' : '✏ Исправить'}</h3>
+      <div class="correct-stats-row">
+        <label class="correct-stats-label"><span class="xp-star">✸</span> ${de ? 'Erfahrung (XP)' : 'Опыт (XP)'}:</label>
+        <div class="correct-stats-counter">
+          <button class="correct-btn" onclick="correctStatStep('xp',-1)">−</button>
+          <input type="number" id="correct-xp-val" min="0" max="500" value="${currentXp}"
+            style="width:64px;text-align:center;font-size:1rem;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:4px;">
+          <button class="correct-btn" onclick="correctStatStep('xp',1)">+</button>
+        </div>
+      </div>
+      <div class="correct-stats-row">
+        <label class="correct-stats-label">💰 ${de ? 'Gold' : 'Золото'}:</label>
+        <div class="correct-stats-counter">
+          <button class="correct-btn" onclick="correctStatStep('gold',-1)">−</button>
+          <input type="number" id="correct-gold-val" min="0" max="9999" value="${currentGold}"
+            style="width:64px;text-align:center;font-size:1rem;background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:4px;">
+          <button class="correct-btn" onclick="correctStatStep('gold',1)">+</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px;">
+        <button class="btn-primary" style="flex:1;padding:10px;" onclick="applyCorrectStats()">
+          ${de ? 'Bestätigen' : 'Подтвердить'}
+        </button>
+        <button style="flex:1;padding:10px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--text-dim);cursor:pointer;" onclick="document.getElementById('correct-stats-overlay').remove()">
+          ${de ? 'Abbrechen' : 'Отмена'}
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+}
+
+function correctStatStep(field, delta) {
+  const id = field === 'xp' ? 'correct-xp-val' : 'correct-gold-val';
+  const max = field === 'xp' ? 500 : 9999;
+  const inp = document.getElementById(id);
+  if (!inp) return;
+  inp.value = Math.max(0, Math.min(max, (parseInt(inp.value, 10) || 0) + delta));
+}
+
+async function applyCorrectStats() {
+  const overlay = document.getElementById('correct-stats-overlay');
+  const newXp = Math.max(0, Math.min(500, parseInt(document.getElementById('correct-xp-val').value, 10) || 0));
+  const newGold = Math.max(0, parseInt(document.getElementById('correct-gold-val').value, 10) || 0);
+  if (overlay) overlay.remove();
+  if (typeof setMyGold === 'function') setMyGold(newGold);
+  await updatePlayerData({ playerXP: newXp });
+  renderPlayerTab();
 }
