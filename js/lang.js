@@ -6,12 +6,36 @@ function setLang(l) {
   document.getElementById('btn-lang-de').classList.toggle('active', l === 'de');
 
   const labels = {
-    ru: ['🃏 Герои', '📖 Миссии', '⚔ Задания', '🏙 События', '🛒 Магазин', '👥 Партия', '📚 Справочник', '📋 Правила'],
-    de: ['🃏 Helden', '📖 Szenarien', '⚔ Aufgaben', '🏙 Ereignisse', '🛒 Laden', '👥 Gruppe', '📚 Handbuch', '📋 Regeln']
+    ru: {
+      player: '👤 Игрок',
+      party: '👥 Партия',
+      heroes: '🃏 Герои',
+      missions: '📖 Миссии',
+      goals: '⚔ Задания',
+      events: '🏙 События',
+      shop: '🛒 Магазин',
+      helper: '📚 Справочник',
+      rules: '📋 Правила'
+    },
+    de: {
+      player: '👤 Spieler',
+      party: '👥 Gruppe',
+      heroes: '🃏 Helden',
+      missions: '📖 Szenarien',
+      goals: '⚔ Aufgaben',
+      events: '🏙 Ereignisse',
+      shop: '🛒 Laden',
+      helper: '📚 Handbuch',
+      rules: '📋 Regeln'
+    }
   };
-  document.querySelectorAll('.tab-btn').forEach((b, i) => {
-    if (labels[l][i]) b.textContent = labels[l][i];
+  Object.entries(labels[l]).forEach(([id, label]) => {
+    const btn = document.getElementById(`tabbtn-${id}`);
+    if (btn) btn.textContent = label;
   });
+  const activeBtn = document.querySelector('.tab-btn.active');
+  const navLabel = document.getElementById('nav-current-label');
+  if (activeBtn && navLabel) navLabel.textContent = activeBtn.textContent.trim();
 
   const charNames = {
     HA: { ru: CHARS.HA.nameRu, de: CHARS.HA.nameDe },

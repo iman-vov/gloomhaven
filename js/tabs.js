@@ -1,4 +1,12 @@
 function openImgLightbox(src) {
+  if (typeof _playerLbSrcs !== 'undefined') {
+    _playerLbSrcs = [];
+    _playerLbIdx = 0;
+  }
+  const prev = document.getElementById('img-lb-prev');
+  const next = document.getElementById('img-lb-next');
+  if (prev) prev.style.display = 'none';
+  if (next) next.style.display = 'none';
   document.getElementById('img-lightbox-img').src = src;
   document.getElementById('img-lightbox').classList.add('open');
 }
@@ -12,6 +20,9 @@ function toggleMobileNav() {
 }
 
 function switchTab(id) {
+  if (id === 'goals' && typeof sessionCode !== 'undefined' && sessionCode) {
+    id = 'party';
+  }
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById(`tab-${id}`).classList.add('active');
@@ -31,6 +42,9 @@ function switchTab(id) {
   }
   if (id === 'party' && typeof renderPartyTab === 'function') {
     renderPartyTab();
+  }
+  if (id === 'player' && typeof renderPlayerTab === 'function') {
+    renderPlayerTab();
   }
   if (id === 'missions') {
     initMissionSelect();
@@ -65,9 +79,9 @@ function init() {
   initMissionSelect();
   updateDrawBtn();
   updateUnlockBtns();
-  const savedTab = lsGet('activeTab', 'heroes');
-  const tabBtn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick')?.includes(savedTab));
+  const tabBtn = document.getElementById('tabbtn-player');
   if (tabBtn) tabBtn.click();
+  document.getElementById('tab-nav').scrollLeft = 0;
   const savedChar = lsGet('activeChar', null);
   if (savedChar && CHARS[savedChar]) selectChar(savedChar);
   initSession();

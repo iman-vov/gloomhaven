@@ -24,7 +24,7 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=7">
 
 </head>
 
@@ -74,10 +74,14 @@
 
 <nav id="tab-nav">
 
-  <button id="nav-hamburger" onclick="toggleMobileNav()">☰ <span id="nav-current-label">Герои</span> ▾</button>
+  <button id="nav-hamburger" onclick="toggleMobileNav()">☰ <span id="nav-current-label">Игрок</span> ▾</button>
 
 
-  <button class="tab-btn active" onclick="switchTab('heroes')" id="tabbtn-heroes">🃏 Герои</button>
+  <button class="tab-btn active" onclick="switchTab('player')" id="tabbtn-player">👤 Игрок</button>
+
+  <button class="tab-btn" onclick="switchTab('party')" id="tabbtn-party">👥 Партия</button>
+
+  <button class="tab-btn" onclick="switchTab('heroes')" id="tabbtn-heroes">🃏 Герои</button>
 
   <button class="tab-btn" onclick="switchTab('missions')" id="tabbtn-missions">📖 Миссии</button>
 
@@ -86,7 +90,6 @@
   <button class="tab-btn" onclick="switchTab('events')" id="tabbtn-events">🏙 События</button>
 
   <button class="tab-btn" onclick="switchTab('shop')" id="tabbtn-shop">🛒 Магазин</button>
-  <button class="tab-btn" onclick="switchTab('party')" id="tabbtn-party">👥 Партия</button>
 
   <button class="tab-btn" onclick="switchTab('helper')" id="tabbtn-helper">📚 Справочник</button>
 
@@ -108,7 +111,110 @@
 
   ══════════════════════════════════ -->
 
-  <section id="tab-heroes" class="tab-panel active">
+  <section id="tab-player" class="tab-panel active">
+    <div id="player-empty" class="player-empty hidden"
+      data-ru="Подключитесь к сессии и выберите персонажа."
+      data-de="Tritt einer Sitzung bei und wähle einen Charakter.">
+      Подключитесь к сессии и выберите персонажа.
+    </div>
+
+    <div class="player-top-row">
+    <div id="player-hero-header" class="player-hero-header hidden">
+      <img id="player-hero-portrait" src="" alt="" class="player-hero-portrait">
+      <div class="player-hero-info">
+        <div id="player-hero-name" class="player-hero-name"></div>
+        <div class="player-stat-row">
+          <span data-ru="Уровень" data-de="Level">Уровень</span>:
+          <strong id="player-level-display">1</strong>
+        </div>
+        <div class="player-stat-row">
+          <span data-ru="❤️ HP на миссию" data-de="❤️ HP für Mission">❤️ HP на миссию</span>:
+          <strong id="player-hp-display">—</strong>
+        </div>
+        <div class="player-stat-row">
+          XP: <strong id="player-xp-display">0</strong>
+          <span id="player-xp-threshold"></span>
+        </div>
+        <div class="player-stat-row">
+          <span data-ru="Золото" data-de="Gold">Золото</span>:
+          <strong id="player-gold-display">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-right-blocks">
+    <div id="player-reward-section" class="player-section hidden">
+      <h3 data-ru="Награда за миссию" data-de="Missionsloot">Награда за миссию</h3>
+      <div class="reward-inputs">
+        <label>XP: <input type="number" id="reward-xp-input" min="0" max="50" value="0"></label>
+        <label>
+          <span data-ru="Золото" data-de="Gold">Золото</span>:
+          <input type="number" id="reward-gold-input" min="0" max="50" value="0">
+        </label>
+        <button onclick="applyMissionReward()" data-ru="Применить" data-de="Anwenden">Применить</button>
+      </div>
+    </div>
+
+    <div id="player-mission-section" class="player-section hidden">
+      <h3 data-ru="Прогресс кампании" data-de="Kampagnenfortschritt">Прогресс кампании</h3>
+      <div class="mission-counter-row">
+        <span data-ru="Миссия" data-de="Mission">Миссия</span>
+        <input type="number" id="player-mission-count" min="1" max="99" value="1"
+          style="width:56px;font-weight:700;font-size:1.1em;text-align:center;"
+          onchange="setMissionCountManual(this.value)">
+      </div>
+      <button onclick="completeMission()"
+        data-ru="Миссия завершена → обновить пул"
+        data-de="Mission abgeschlossen → Pool aktualisieren">
+        Миссия завершена → обновить пул
+      </button>
+    </div>
+
+    </div>
+    </div>
+
+    <div id="player-pool-section" class="player-section hidden">
+      <h3 data-ru="Пул карт" data-de="Kartenpool">Пул карт</h3>
+      <div id="player-pool-grid" class="cards-mini-grid"></div>
+    </div>
+
+    <div id="player-deck-section" class="player-section hidden">
+      <h3>
+        <span data-ru="Колода миссии" data-de="Missionsdeck">Колода миссии</span>
+        <span id="player-deck-counter" class="deck-counter-badge">0/10</span>
+      </h3>
+      <div id="player-deck-grid" class="cards-mini-grid"></div>
+    </div>
+
+    <div id="player-mission-action-row" class="player-mission-action-row hidden">
+      <button id="btn-take-to-mission" onclick="takeToMission()"
+        class="btn-primary"
+        data-ru="▶ Взять в миссию" data-de="▶ Mit ins Abenteuer">
+        ▶ Взять в миссию
+      </button>
+    </div>
+
+    <div id="player-items-section" class="player-section hidden">
+      <h3 data-ru="Предметы на миссию" data-de="Items für Mission">Предметы на миссию</h3>
+      <div id="player-items-slots" class="items-slots-grid"></div>
+    </div>
+
+    <div id="levelup-section" class="player-section hidden">
+      <h3 data-ru="Повышение уровня!" data-de="Level Up!">Повышение уровня!</h3>
+      <p id="levelup-prompt"></p>
+      <div id="levelup-cards-grid" class="cards-mini-grid"></div>
+    </div>
+  </section>
+
+  <section id="tab-party" class="tab-panel">
+    <div class="party-title-row">
+      <h2 class="section-title" id="party-title">👥 Партия</h2>
+      <div id="party-end-btn-container"></div>
+    </div>
+    <div id="party-content"></div>
+  </section>
+
+  <section id="tab-heroes" class="tab-panel">
 
     <h2 class="section-title" id="heroes-title">🃏 Карты Героев</h2>
 
@@ -274,6 +380,167 @@
   ══════════════════════════════════ -->
 
   </section>
+  <section id="tab-missions" class="tab-panel">
+
+    <h2 class="section-title" id="missions-title">📖 Миссии</h2>
+
+
+
+    <div class="mission-selector-bar">
+
+      <select id="mission-select" onchange="renderMissionTab()"></select>
+
+    </div>
+
+
+
+    <div id="mission-content" class="mission-content hidden">
+
+      <h3 class="mission-block-title" id="mission-task-label">Задача</h3>
+
+      <div class="mission-task-badge" id="mission-task"></div>
+
+
+
+      <div class="mission-block">
+
+        <h3 class="mission-block-title" id="mission-intro-label">Вступление</h3>
+
+        <p class="mission-text" id="mission-intro"></p>
+
+      </div>
+
+
+
+      <div class="mission-block" id="mission-rules-block">
+
+        <h3 class="mission-block-title" id="mission-rules-label">Особые правила</h3>
+
+        <p class="mission-text" id="mission-rules"></p>
+
+      </div>
+
+
+
+      <div class="mission-block" id="mission-triggers-block">
+
+        <h3 class="mission-block-title" id="mission-triggers-label">Тригеры</h3>
+
+        <div id="mission-triggers-list"></div>
+
+      </div>
+
+
+
+      <div class="mission-block">
+
+        <h3 class="mission-block-title" id="mission-conclusion-label">Развязка</h3>
+
+        <p class="mission-text" id="mission-conclusion"></p>
+
+      </div>
+
+
+
+      <h3 class="mission-block-title" id="mission-reward-label">Награда</h3>
+
+      <div class="mission-reward-badge" id="mission-reward"></div>
+
+    </div>
+
+  </section>
+
+
+
+
+  <!-- ══════════════════════════════════
+       TAB 7: HELPER (Quick Ref / Glossary / FAQ)
+  ══════════════════════════════════ -->
+  <section id="tab-goals" class="tab-panel">
+
+    <div id="goals-scroll-bg"></div>
+
+    <div id="goals-content">
+
+      <h2 class="section-title" id="goals-title">⚔ Боевые задания</h2>
+
+      <div class="goals-mode-tabs">
+        <button class="goals-mode-btn active" id="goal-mode-btn-manual" onclick="setGoalMode('manual')">📖 Вручную</button>
+        <button class="goals-mode-btn" id="goal-mode-btn-draw" onclick="setGoalMode('draw')">🎲 Жеребьёвка</button>
+      </div>
+
+      <!-- Manual mode -->
+      <div id="goals-manual-section">
+
+        <div class="goals-controls">
+
+          <select id="goal-select" onchange="loadGoalFromSelect()">
+
+            <option value="">— Выбрать задание —</option>
+
+          </select>
+
+        </div>
+
+        <div id="goal-display-wrap" class="hidden">
+
+          <div class="goal-scroll-card">
+
+            <div class="goal-scroll-inner">
+
+              <div id="goal-num" class="goal-scroll-num"></div>
+
+              <div id="goal-name" class="goal-scroll-name"></div>
+
+              <div class="goal-scroll-divider"><span>✦</span></div>
+
+              <div id="goal-condition" class="goal-scroll-condition"></div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Draw mode -->
+      <div id="goals-draw-section" class="hidden">
+
+        <div id="goals-draw-setup">
+
+          <div class="draw-player-count-row">
+            <span id="draw-players-label">Игроков:</span>
+            <div class="draw-count-btns">
+              <button class="draw-count-btn active" onclick="setDrawPlayerCount(1)">1</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(2)">2</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(3)">3</button>
+              <button class="draw-count-btn" onclick="setDrawPlayerCount(4)">4</button>
+            </div>
+          </div>
+
+          <button class="btn-primary draw-start-btn" id="draw-start-btn" onclick="startGoalDraw()">🎲 Разыграть</button>
+
+        </div>
+
+        <div id="goals-draw-results"></div>
+
+        <button class="btn-secondary draw-reset-btn hidden" id="draw-reset-btn" onclick="resetGoalDraw()">↺ Новый сеанс</button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- ══════════════════════════════════
+
+       TAB 4: SHOP
+
+  ══════════════════════════════════ -->
+
   <section id="tab-events" class="tab-panel">
 
     <h2 class="section-title" id="events-title">🏙 Городские события</h2>
@@ -373,91 +640,6 @@
   <!-- ══════════════════════════════════
 
        TAB 3: BATTLE GOALS
-
-  ══════════════════════════════════ -->
-
-  <section id="tab-goals" class="tab-panel">
-
-    <div id="goals-scroll-bg"></div>
-
-    <div id="goals-content">
-
-      <h2 class="section-title" id="goals-title">⚔ Боевые задания</h2>
-
-      <div class="goals-mode-tabs">
-        <button class="goals-mode-btn active" id="goal-mode-btn-manual" onclick="setGoalMode('manual')">📖 Вручную</button>
-        <button class="goals-mode-btn" id="goal-mode-btn-draw" onclick="setGoalMode('draw')">🎲 Жеребьёвка</button>
-      </div>
-
-      <!-- Manual mode -->
-      <div id="goals-manual-section">
-
-        <div class="goals-controls">
-
-          <select id="goal-select" onchange="loadGoalFromSelect()">
-
-            <option value="">— Выбрать задание —</option>
-
-          </select>
-
-        </div>
-
-        <div id="goal-display-wrap" class="hidden">
-
-          <div class="goal-scroll-card">
-
-            <div class="goal-scroll-inner">
-
-              <div id="goal-num" class="goal-scroll-num"></div>
-
-              <div id="goal-name" class="goal-scroll-name"></div>
-
-              <div class="goal-scroll-divider"><span>✦</span></div>
-
-              <div id="goal-condition" class="goal-scroll-condition"></div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- Draw mode -->
-      <div id="goals-draw-section" class="hidden">
-
-        <div id="goals-draw-setup">
-
-          <div class="draw-player-count-row">
-            <span id="draw-players-label">Игроков:</span>
-            <div class="draw-count-btns">
-              <button class="draw-count-btn active" onclick="setDrawPlayerCount(1)">1</button>
-              <button class="draw-count-btn" onclick="setDrawPlayerCount(2)">2</button>
-              <button class="draw-count-btn" onclick="setDrawPlayerCount(3)">3</button>
-              <button class="draw-count-btn" onclick="setDrawPlayerCount(4)">4</button>
-            </div>
-          </div>
-
-          <button class="btn-primary draw-start-btn" id="draw-start-btn" onclick="startGoalDraw()">🎲 Разыграть</button>
-
-        </div>
-
-        <div id="goals-draw-results"></div>
-
-        <button class="btn-secondary draw-reset-btn hidden" id="draw-reset-btn" onclick="resetGoalDraw()">↺ Новый сеанс</button>
-
-      </div>
-
-    </div>
-
-  </section>
-
-
-
-  <!-- ══════════════════════════════════
-
-       TAB 4: SHOP
 
   ══════════════════════════════════ -->
 
@@ -579,12 +761,13 @@
 
   ══════════════════════════════════ -->
 
-  <section id="tab-party" class="tab-panel">
-    <h2 class="section-title" id="party-title">👥 Партия</h2>
-    <div id="party-content"></div>
+  <section id="tab-helper" class="tab-panel">
+    <h2 class="section-title" id="helper-title">📚 Справочник</h2>
+    <div id="helper-inner-tabs" class="helper-inner-tabs"></div>
+    <div id="helper-content" class="helper-content"></div>
   </section>
 
-  <section id="tab-rules" class="tab-panel">
+<section id="tab-rules" class="tab-panel">
     <h2 class="section-title" id="rules-title">📋 Памятка по правилам</h2>
 
     <div id="reminder-img-wrap">
@@ -762,89 +945,7 @@
 
   ══════════════════════════════════ -->
 
-  <section id="tab-missions" class="tab-panel">
-
-    <h2 class="section-title" id="missions-title">📖 Миссии</h2>
-
-
-
-    <div class="mission-selector-bar">
-
-      <select id="mission-select" onchange="renderMissionTab()"></select>
-
-    </div>
-
-
-
-    <div id="mission-content" class="mission-content hidden">
-
-      <h3 class="mission-block-title" id="mission-task-label">Задача</h3>
-
-      <div class="mission-task-badge" id="mission-task"></div>
-
-
-
-      <div class="mission-block">
-
-        <h3 class="mission-block-title" id="mission-intro-label">Вступление</h3>
-
-        <p class="mission-text" id="mission-intro"></p>
-
-      </div>
-
-
-
-      <div class="mission-block" id="mission-rules-block">
-
-        <h3 class="mission-block-title" id="mission-rules-label">Особые правила</h3>
-
-        <p class="mission-text" id="mission-rules"></p>
-
-      </div>
-
-
-
-      <div class="mission-block" id="mission-triggers-block">
-
-        <h3 class="mission-block-title" id="mission-triggers-label">Тригеры</h3>
-
-        <div id="mission-triggers-list"></div>
-
-      </div>
-
-
-
-      <div class="mission-block">
-
-        <h3 class="mission-block-title" id="mission-conclusion-label">Развязка</h3>
-
-        <p class="mission-text" id="mission-conclusion"></p>
-
-      </div>
-
-
-
-      <h3 class="mission-block-title" id="mission-reward-label">Награда</h3>
-
-      <div class="mission-reward-badge" id="mission-reward"></div>
-
-    </div>
-
-  </section>
-
-
-
-
-  <!-- ══════════════════════════════════
-       TAB 7: HELPER (Quick Ref / Glossary / FAQ)
-  ══════════════════════════════════ -->
-  <section id="tab-helper" class="tab-panel">
-    <h2 class="section-title" id="helper-title">📚 Справочник</h2>
-    <div id="helper-inner-tabs" class="helper-inner-tabs"></div>
-    <div id="helper-content" class="helper-content"></div>
-  </section>
-
-</main>
+  </main>
 
 
 
@@ -893,7 +994,40 @@
 <!-- ─── Image Lightbox ─── -->
 <div id="img-lightbox" onclick="closeImgLightbox()">
   <button id="img-lightbox-close" onclick="closeImgLightbox()">✕</button>
+  <button id="img-lb-prev" onclick="event.stopPropagation();playerLbNav(-1)" style="display:none">&#8249;</button>
   <img id="img-lightbox-img" src="" alt="">
+  <button id="img-lb-next" onclick="event.stopPropagation();playerLbNav(1)" style="display:none">&#8250;</button>
+</div>
+
+<div id="hero-select-modal" class="modal-overlay" style="display:none">
+  <div class="modal-box hero-select-modal-box">
+    <h2 id="hero-modal-title" data-ru="Выберите персонажа" data-de="Wähle deinen Charakter">
+      Выберите персонажа
+    </h2>
+
+    <div id="hero-modal-resume" style="display:none">
+      <div class="hero-modal-resume-row">
+        <img id="hero-modal-resume-img" src="" alt="" class="hero-modal-resume-face">
+        <div>
+          <div id="hero-modal-resume-name" style="font-weight:700;font-size:1.1em;"></div>
+          <div style="font-size:0.85em;color:var(--text-dim);"
+            data-ru="Продолжить за этого персонажа?" data-de="Mit diesem Charakter weiterspielen?">
+            Продолжить за этого персонажа?
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="btn-primary" onclick="heroModalResume()"
+          data-ru="Да, продолжить" data-de="Ja, weiter">Да, продолжить</button>
+        <button onclick="heroModalShowPicker()"
+          data-ru="Выбрать другого" data-de="Anderen wählen">Выбрать другого</button>
+      </div>
+    </div>
+
+    <div id="hero-modal-picker" style="display:none">
+      <div id="hero-modal-grid" class="char-select-grid-modal"></div>
+    </div>
+  </div>
 </div>
 
 
@@ -904,38 +1038,39 @@
 
 ══════════════════════════════════════════════════ -->
 
-<script src="js/missions.js"></script>
+<script src="js/missions.js?v=2"></script>
 
-<script src="js/items.js"></script>
+<script src="js/items.js?v=2"></script>
 
-<script src="js/utils.js"></script>
+<script src="js/utils.js?v=2"></script>
 
-<script src="js/data.js"></script>
+<script src="js/data.js?v=2"></script>
 
-<script src="js/lang.js"></script>
+<script src="js/lang.js?v=2"></script>
 
-<script src="js/heroes.js"></script>
+<script src="js/heroes.js?v=2"></script>
 
-<script src="js/events.js"></script>
+<script src="js/events.js?v=2"></script>
 
-<script src="js/goals.js"></script>
+<script src="js/goals.js?v=2"></script>
 
-<script src="js/shop.js"></script>
+<script src="js/shop.js?v=2"></script>
 
-<script src="js/missions-ui.js"></script>
+<script src="js/missions-ui.js?v=2"></script>
 
-<script src="js/helper-data.js"></script>
+<script src="js/helper-data.js?v=2"></script>
 
-<script src="js/helper.js"></script>
+<script src="js/helper.js?v=2"></script>
 
-<script src="js/rules.js"></script>
+<script src="js/rules.js?v=2"></script>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-<script src="js/firebase-init.js"></script>
-<script src="js/session.js"></script>
+<script src="js/firebase-init.js?v=2"></script>
+<script src="js/session.js?v=9"></script>
+<script src="js/player.js?v=2"></script>
 
-<script src="js/tabs.js"></script>
+<script src="js/tabs.js?v=3"></script>
 
 </body>
 

@@ -12,7 +12,7 @@ function getInitialStock() {
 }
 
 function getShopInventoryOwner() {
-  return sessionCode ? playerId : null;
+  return sessionCode ? playerId : (activeChar || null);
 }
 
 function getShopInventory() {
@@ -49,6 +49,7 @@ function changeShopStock(itemId, delta) {
 function finalizeShopUpdate(reopenItemId = null) {
   renderItemsGrid();
   if (shopView === 'owned') renderOwnedGrid();
+  if (typeof renderPlayerTab === 'function') renderPlayerTab();
   if (reopenItemId) {
     const item = ITEMS.find(x => x.id === reopenItemId);
     if (item) openItemModal(item);

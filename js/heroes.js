@@ -47,6 +47,10 @@ function selectChar(code) {
     sessionClaimHero(code);
   }
 
+  if (sessionCode && activeChar && activeChar !== code) {
+    setInventory(playerId, []);
+  }
+
   activeChar = code;
 
   lsSet('activeChar', code);
@@ -82,6 +86,18 @@ function selectChar(code) {
   renderCardsGrid();
 
   renderDeckCounter();
+
+  if (sessionCode && typeof ensurePlayerDefaults === 'function') {
+    ensurePlayerDefaults(code).then(() => {
+      if (typeof renderPlayerTab === 'function') renderPlayerTab();
+    });
+  } else if (typeof renderPlayerTab === 'function') {
+    renderPlayerTab();
+  }
+
+  if (typeof renderPartyTab === 'function') renderPartyTab();
+  if (typeof renderItemsGrid === 'function') renderItemsGrid();
+  if (typeof renderOwnedGrid === 'function') renderOwnedGrid();
 
 }
 
