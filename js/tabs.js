@@ -2,13 +2,19 @@ function openImgLightbox(src) {
   if (typeof _playerLbSrcs !== 'undefined') {
     _playerLbSrcs = [];
     _playerLbIdx = 0;
+    if (typeof _playerLbCards !== 'undefined') _playerLbCards = [];
+    if (typeof _playerLbAction !== 'undefined') _playerLbAction = null;
   }
   const prev = document.getElementById('img-lb-prev');
   const next = document.getElementById('img-lb-next');
   if (prev) prev.style.display = 'none';
   if (next) next.style.display = 'none';
+  const lb = document.getElementById('img-lightbox');
+  const info = document.getElementById('img-lightbox-info');
+  if (info) info.style.display = 'none';
+  lb.classList.remove('has-info');
   document.getElementById('img-lightbox-img').src = src;
-  document.getElementById('img-lightbox').classList.add('open');
+  lb.classList.add('open');
 }
 
 function closeImgLightbox() {

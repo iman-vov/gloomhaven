@@ -3,14 +3,116 @@
 // ─── Lightbox navigation for player cards ─────────────────
 let _playerLbSrcs = [];
 let _playerLbIdx  = 0;
+let _playerLbCards = [];
+let _playerLbAction = null;
 
-function openPlayerCardLightbox(srcs, idx) {
+function openPlayerCardLightbox(srcs, idx, cards, action) {
   _playerLbSrcs = srcs;
   _playerLbIdx  = idx;
+  _playerLbCards = Array.isArray(cards) ? cards : [];
+  _playerLbAction = action || null;
   const lb = document.getElementById('img-lightbox');
-  document.getElementById('img-lightbox-img').src = srcs[idx];
+  _renderPlayerLbContent();
   lb.classList.add('open');
   _updatePlayerLbNav();
+}
+
+function _ensurePlayerLbInfo() {
+  const lb = document.getElementById('img-lightbox');
+  if (!lb) return null;
+  let info = document.getElementById('img-lightbox-info');
+  if (!info) {
+    info = document.createElement('div');
+    info.id = 'img-lightbox-info';
+    info.onclick = e => e.stopPropagation();
+    info.innerHTML = [
+      '<div id="img-lightbox-title"></div>',
+      '<div id="img-lightbox-meta"></div>',
+      '<div id="img-lightbox-lost" class="hidden"></div>',
+      '<div id="img-lightbox-desc"></div>',
+      '<button id="img-lightbox-action" type="button"></button>'
+    ].join('');
+    lb.appendChild(info);
+  }
+  return info;
+}
+
+function _playerLbLabel(key) {
+  const ru = {
+    add: '\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c',
+    remove: '\u0423\u0431\u0440\u0430\u0442\u044c',
+    select: '\u0412\u044b\u0431\u0440\u0430\u0442\u044c',
+    level: '\u0423\u0440.',
+    initiative: '\u0418\u043d\u0438\u0446\u0438\u0430\u0442\u0438\u0432\u0430',
+    lost: '\u041f\u041e\u0422\u0415\u0420\u042f'
+  };
+  const de = {
+    add: 'Hinzuf\u00fcgen',
+    remove: 'Entfernen',
+    select: 'W\u00e4hlen',
+    level: 'Stufe',
+    initiative: 'Initiative',
+    lost: 'VERLUST'
+  };
+  return (lang === 'de' ? de : ru)[key] || key;
+}
+
+function _renderPlayerLbContent() {
+  const img = document.getElementById('img-lightbox-img');
+  const lb = document.getElementById('img-lightbox');
+  if (img) img.src = _playerLbSrcs[_playerLbIdx] || '';
+
+  const card = _playerLbCards[_playerLbIdx];
+  const info = _ensurePlayerLbInfo();
+  if (!lb || !info) return;
+
+  lb.classList.toggle('has-info', !!card);
+  if (!card) {
+    info.style.display = 'none';
+    return;
+  }
+
+  info.style.display = '';
+  const data = typeof getCardData === 'function' ? getCardData(card.id) : {};
+  const title = document.getElementById('img-lightbox-title');
+  const meta = document.getElementById('img-lightbox-meta');
+  const lost = document.getElementById('img-lightbox-lost');
+  const desc = document.getElementById('img-lightbox-desc');
+  const actionBtn = document.getElementById('img-lightbox-action');
+
+  if (title) title.textContent = cardName(card);
+  if (meta) {
+    const parts = [
+      _playerLbLabel('level') + ': ' + card.level,
+      'ID: ' + card.id
+    ];
+    if (data.initiative) parts.push(_playerLbLabel('initiative') + ': ' + data.initiative);
+    meta.textContent = parts.join(' - ');
+  }
+  if (lost) {
+    lost.textContent = _playerLbLabel('lost');
+    lost.classList.toggle('hidden', !data.lost);
+  }
+  if (desc) desc.textContent = lang === 'de' ? (data.descDe || '') : (data.descRu || '');
+
+  if (!actionBtn || !_playerLbAction) {
+    if (actionBtn) actionBtn.classList.add('hidden');
+    return;
+  }
+
+  actionBtn.classList.remove('hidden');
+  actionBtn.onclick = e => {
+    e.stopPropagation();
+    _runPlayerLbAction();
+  };
+  if (_playerLbAction.type === 'level-up') {
+    actionBtn.textContent = '+ ' + _playerLbLabel('select');
+  } else {
+    const deck = getDeck(_playerLbAction.hero);
+    actionBtn.textContent = deck.includes(card.id)
+      ? '- ' + _playerLbLabel('remove')
+      : '+ ' + _playerLbLabel('add');
+  }
 }
 
 function _updatePlayerLbNav() {
@@ -23,7 +125,21 @@ function _updatePlayerLbNav() {
 function playerLbNav(delta) {
   if (!_playerLbSrcs.length) return;
   _playerLbIdx = (_playerLbIdx + delta + _playerLbSrcs.length) % _playerLbSrcs.length;
-  document.getElementById('img-lightbox-img').src = _playerLbSrcs[_playerLbIdx];
+  _renderPlayerLbContent();
+}
+
+function _runPlayerLbAction() {
+  const card = _playerLbCards[_playerLbIdx];
+  if (!card || !_playerLbAction) return;
+  if (_playerLbAction.type === 'level-up') {
+    closeImgLightbox();
+    chooseLevelUpCard(card.id, _playerLbAction.newLevel);
+    return;
+  }
+  if (_playerLbAction.type === 'deck-toggle') {
+    togglePlayerDeck(card.id, _playerLbAction.hero);
+    _renderPlayerLbContent();
+  }
 }
 
 function getLocalPlayerData(heroCode) {
@@ -282,6 +398,7 @@ async function renderPlayerTab() {
   document.getElementById('player-pool-section').classList.remove('hidden');
   document.getElementById('player-deck-section').classList.remove('hidden');
   document.getElementById('player-items-section').classList.remove('hidden');
+  ensureLevelUpPlacement();
 
   renderPoolGrid(pool, deck, activeChar);
   renderPlayerDeckGrid(deck, activeChar, level);
@@ -305,12 +422,24 @@ function hidePlayerSections() {
   });
 }
 
+function ensureLevelUpPlacement() {
+  const levelup = document.getElementById('levelup-section');
+  const pool = document.getElementById('player-pool-section');
+  if (levelup && pool && levelup.nextElementSibling !== pool) {
+    pool.parentNode.insertBefore(levelup, pool);
+  }
+}
+
 function renderPoolGrid(pool, deck, hero) {
   const grid = document.getElementById('player-pool-grid');
   if (!grid) return;
   grid.innerHTML = '';
   const base = './assets/cards/' + (lang === 'de' ? 'deu' : 'ru') + '/' + hero + '/';
   const srcs = pool.map(id => base + id + '.png');
+  const cardsForLightbox = pool.map(id => {
+    const card = CHARS[hero] && CHARS[hero].cards.find(c => c.id === id);
+    return card || { id, level: '?' };
+  });
 
   pool.forEach((id, idx) => {
     const card = CHARS[hero] && CHARS[hero].cards.find(c => c.id === id);
@@ -324,7 +453,7 @@ function renderPoolGrid(pool, deck, hero) {
       '<div class="img-placeholder" style="display:none"><div class="ph-num">' + id + '</div>' + escHtml(name) + '</div>',
       '<button class="card-mini-btn" type="button" aria-label="' + (inDeck ? 'Remove' : 'Add') + '">' + (inDeck ? '✓' : '+') + '</button>'
     ].join('');
-    el.querySelector('img').onclick = () => openPlayerCardLightbox(srcs, idx);
+    el.querySelector('img').onclick = () => openPlayerCardLightbox(srcs, idx, cardsForLightbox, { type: 'deck-toggle', hero });
     el.querySelector('.card-mini-btn').onclick = () => togglePlayerDeck(id, hero);
     grid.appendChild(el);
   });
@@ -343,11 +472,19 @@ function renderPlayerDeckGrid(deck, hero, level) {
     btn.dataset.ru = '▶ Взять выбранное в миссию';
     btn.dataset.de = '▶ Auswahl mitnehmen';
     btn.textContent = lang === 'de' ? btn.dataset.de : btn.dataset.ru;
+    btn.disabled = deck.length < max;
+    btn.title = deck.length < max
+      ? (lang === 'de' ? 'Missionsdeck muss voll sein.' : '\u041a\u043e\u043b\u043e\u0434\u0430 \u043c\u0438\u0441\u0441\u0438\u0438 \u0434\u043e\u043b\u0436\u043d\u0430 \u0431\u044b\u0442\u044c \u043f\u043e\u043b\u043d\u043e\u0439.')
+      : '';
   }
   if (actionRow) actionRow.classList.toggle('hidden', deck.length === 0);
 
   const base2 = './assets/cards/' + (lang === 'de' ? 'deu' : 'ru') + '/' + hero + '/';
   const deckSrcs = deck.map(id => base2 + id + '.png');
+  const deckCardsForLightbox = deck.map(id => {
+    const card = CHARS[hero] && CHARS[hero].cards.find(c => c.id === id);
+    return card || { id, level: '?' };
+  });
 
   deck.forEach((id, idx) => {
     const card = CHARS[hero] && CHARS[hero].cards.find(c => c.id === id);
@@ -360,7 +497,7 @@ function renderPlayerDeckGrid(deck, hero, level) {
       '<div class="img-placeholder" style="display:none"><div class="ph-num">' + id + '</div>' + escHtml(name) + '</div>',
       '<button class="card-mini-btn remove" type="button" aria-label="Remove">−</button>'
     ].join('');
-    el.querySelector('img').onclick = () => openPlayerCardLightbox(deckSrcs, idx);
+    el.querySelector('img').onclick = () => openPlayerCardLightbox(deckSrcs, idx, deckCardsForLightbox, { type: 'deck-toggle', hero });
     el.querySelector('.card-mini-btn').onclick = () => togglePlayerDeck(id, hero);
     grid.appendChild(el);
   });
@@ -570,9 +707,10 @@ function checkLevelUp(xp, level, hero) {
   }
 
   section.classList.remove('hidden');
+  section.classList.add('levelup-attention');
   document.getElementById('levelup-prompt').textContent = lang === 'de'
-    ? 'Wähle eine Karte für Stufe ' + (level + 1) + '.'
-    : 'Выберите карту уровня ' + (level + 1) + '.';
+    ? 'Neues Level ' + (level + 1) + '! W\u00e4hle eine neue Karte. Dieser Block bleibt sichtbar, bis du eine Karte gew\u00e4hlt hast.'
+    : '\u041d\u043e\u0432\u044b\u0439 \u0443\u0440\u043e\u0432\u0435\u043d\u044c ' + (level + 1) + '! \u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043d\u043e\u0432\u0443\u044e \u043a\u0430\u0440\u0442\u0443. \u042d\u0442\u043e\u0442 \u0431\u043b\u043e\u043a \u043d\u0435 \u0441\u043a\u0440\u043e\u0435\u0442\u0441\u044f, \u043f\u043e\u043a\u0430 \u043a\u0430\u0440\u0442\u0430 \u043d\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u0430.';
   renderLevelUpCards(hero, level + 1);
 }
 
@@ -583,17 +721,19 @@ function renderLevelUpCards(hero, newLevel) {
 
   const candidates = (CHARS[hero] ? CHARS[hero].cards : [])
     .filter(card => parseInt(card.level, 10) === newLevel || (parseInt(card.level, 10) < newLevel && !playerCachedPool.includes(card.id)));
+  const srcs = candidates.map(card => './assets/cards/' + (lang === 'de' ? 'deu' : 'ru') + '/' + hero + '/' + card.id + '.png');
 
-  candidates.forEach(card => {
+  candidates.forEach((card, idx) => {
     const name = cardName(card);
     const el = document.createElement('div');
     el.className = 'card-mini';
     el.innerHTML = [
-      '<img src="./assets/cards/' + (lang === 'de' ? 'deu' : 'ru') + '/' + hero + '/' + card.id + '.png" alt="' + card.id + '" onclick="openImgLightbox(this.src)"',
+      '<img src="' + srcs[idx] + '" alt="' + card.id + '"',
       ' onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">',
       '<div class="img-placeholder" style="display:none"><div class="ph-num">' + card.id + '</div>' + escHtml(name) + '</div>',
       '<button class="card-mini-btn" type="button">+</button>'
     ].join('');
+    el.querySelector('img').onclick = () => openPlayerCardLightbox(srcs, idx, candidates, { type: 'level-up', hero, newLevel });
     el.querySelector('.card-mini-btn').onclick = () => chooseLevelUpCard(card.id, newLevel);
     grid.appendChild(el);
   });
@@ -607,6 +747,11 @@ async function chooseLevelUpCard(cardId, newLevel) {
 }
 
 function takeToMission() {
+  if (!activeChar) return;
+  const deck = getDeck(activeChar);
+  const max = Math.min(DECK_SIZE[activeChar] || 10, playerCachedPool.length || DECK_SIZE[activeChar] || 10);
+  if (deck.length < max) return;
   if (typeof startMissionWithDeck === 'function') startMissionWithDeck();
   if (typeof renderPartyTab === 'function') renderPartyTab();
+  if (typeof switchTab === 'function') switchTab('party');
 }

@@ -330,11 +330,19 @@ function getMissionGoalText(goal) {
 function getMissionGoalImgSrc(goalId) {
   return lang === 'de'
     ? `./assets/goals/deu/${goalId}.png`
-    : `./assets/goals/${goalId}.png`;
+    : `./assets/goals/rus/${goalId}.png`;
 }
 
 function getMissionGoalFallbackSrc(goalId) {
-  return `./assets/goals/${goalId}.png`;
+  return `./assets/goals/rus/${goalId}.png`;
+}
+
+function missionHasBattleGoals(mission) {
+  return Math.max(1, parseInt(mission, 10) || 1) > 3;
+}
+
+function missionHasCityEventReward(mission) {
+  return Math.max(1, parseInt(mission, 10) || 1) >= 3;
 }
 
 function toggleMyMissionGoalDetails() {
@@ -345,6 +353,7 @@ function toggleMyMissionGoalDetails() {
 async function drawMyMissionGoals() {
   if (!sessionRef || !playerId) return;
   const currentMission = sessionPlayers[playerId]?.missionCount || 1;
+  if (!missionHasBattleGoals(currentMission)) return;
 
   if (missionGoalMission !== currentMission) {
     await resetMissionGoalsForMission(currentMission);
@@ -390,6 +399,7 @@ function chooseMyMissionGoal(goalId) {
 
 async function setManualMissionGoal(goalId) {
   if (!sessionRef || !playerId) return;
+  if (!missionHasBattleGoals(sessionPlayers[playerId]?.missionCount || 1)) return;
   const id = parseInt(goalId, 10);
   if (!getGoalById(id)) return;
   const used = Array.isArray(usedMissionGoalIds) ? usedMissionGoalIds : [];
@@ -435,9 +445,9 @@ function changeMyPartyCounter(field, delta) {
   sessionRef.child(`players/${playerId}/${field}`).set(next);
 }
 
-async function resetMissionGoalsForMission(nextMission) {
+async function resetMissionGoalsForMission(nextMission, force = false) {
   if (!sessionRef) return;
-  if (missionGoalMission === nextMission) return;
+  if (!force && missionGoalMission === nextMission) return;
   const updates = {
     missionGoalDrafts: null,
     missionGoalMission: null,
@@ -633,6 +643,10 @@ function _showEndMissionOverlay() {
 
   const p = (sessionCode && playerId) ? (sessionPlayers[playerId] || {}) : {};
   const earnedXp = Math.max(0, parseInt(p.missionXp, 10) || 0);
+  const localMission = activeChar && typeof getLocalPlayerData === 'function'
+    ? getLocalPlayerData(activeChar).missionCount
+    : 1;
+  const currentMission = Math.max(1, parseInt(sessionCode ? p.missionCount : localMission, 10) || 1);
 
   const overlay = document.createElement('div');
   overlay.id = 'end-mission-overlay';
@@ -679,6 +693,12 @@ function _showEndMissionOverlay() {
     const reminderText = lang === 'de'
       ? '💰 Gold und Truheninhalt gehören euch bereits — vergesst nicht, sie im Laden zu vermerken.'
       : '💰 Золото и содержимое сундуков уже ваше — не забудьте добавить в магазин.';
+    const goalReminderText = lang === 'de'
+      ? '\u2713 Wenn deine persönliche Aufgabe erfüllt ist, markiere sie auf deinem Charakterbogen.'
+      : '\u2713 Если личное задание выполнено, отметьте его галочкой на листе персонажа.';
+    const cityEventReminderText = lang === 'de'
+      ? '\ud83c\udfd9 Nimm jetzt eine Stadt-Ereigniskarte.'
+      : '\ud83c\udfd9 \u0412\u043e\u0437\u044c\u043c\u0438\u0442\u0435 \u043a\u0430\u0440\u0442\u0443 \u0433\u043e\u0440\u043e\u0434\u0441\u043a\u043e\u0433\u043e \u0441\u043e\u0431\u044b\u0442\u0438\u044f.';
     const xpLabel = lang === 'de' ? 'XP in der Mission verdient' : 'XP заработано за миссию';
     const bonusLabel = lang === 'de' ? 'Доп. XP (награда миссии)' : 'Доп. XP (награда миссии)';
     const goldLabel = lang === 'de' ? 'Gold gefunden (Truhen/Beute)' : 'Золото найдено (сундуки/добыча)';
@@ -688,25 +708,28 @@ function _showEndMissionOverlay() {
 
     formDiv.innerHTML = `
       <div style="font-size:0.9rem;margin-bottom:10px;color:var(--text)">
-        ${xpLabel}: <strong>${earnedXp}</strong>
+        ✴ ${xpLabel}: <strong>${earnedXp}</strong>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
-        <label style="font-size:0.85rem;color:var(--text);">${bonusLabel}:
+        ${victory ? `<label style="font-size:0.85rem;color:var(--text);">✴ ${bonusLabel}:
           <input type="number" id="em-bonus-xp" min="0" max="200" value="0"
             style="width:64px;margin-left:6px;">
-        </label>
-        <label style="font-size:0.85rem;color:var(--text);">${goldLabel}:
+        </label>` : ''}
+        <label style="font-size:0.85rem;color:var(--text);">🪙 ${goldLabel}:
           <input type="number" id="em-found-gold" min="0" max="999" value="0"
             style="width:64px;margin-left:6px;">
         </label>
       </div>
-      <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.4;">${reminderText}</div>
+      <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:8px;line-height:1.4;">${reminderText}</div>
+      ${victory ? `<div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.4;">${goalReminderText}</div>` : ''}
+      ${victory && missionHasCityEventReward(currentMission) ? `<div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:14px;line-height:1.4;">${cityEventReminderText}</div>` : ''}
       <button class="btn-primary" type="button" id="btn-confirm-end-mission" style="width:100%;padding:10px;">
         ${confirmLabel}
       </button>`;
 
     document.getElementById('btn-confirm-end-mission').onclick = () => {
-      const bonusXp = Math.max(0, parseInt(document.getElementById('em-bonus-xp').value, 10) || 0);
+      const bonusInput = document.getElementById('em-bonus-xp');
+      const bonusXp = victory && bonusInput ? Math.max(0, parseInt(bonusInput.value, 10) || 0) : 0;
       const foundGold = Math.max(0, parseInt(document.getElementById('em-found-gold').value, 10) || 0);
       overlay.remove();
       applyEndMission(victory, earnedXp, bonusXp, foundGold);
@@ -719,6 +742,10 @@ function _showEndMissionOverlay() {
 
 async function applyEndMission(victory, earnedXp, bonusXp, foundGold) {
   const totalXp = earnedXp + bonusXp;
+  const currentMission = sessionCode && playerId
+    ? Math.max(1, parseInt(sessionPlayers[playerId]?.missionCount, 10) || 1)
+    : Math.max(1, parseInt(activeChar && typeof getLocalPlayerData === 'function' ? getLocalPlayerData(activeChar).missionCount : 1, 10) || 1);
+  const goToCityEvent = victory && missionHasCityEventReward(currentMission);
 
   if (foundGold > 0 && typeof setMyGold === 'function') {
     setMyGold((typeof getMyGold === 'function' ? getMyGold() : 0) + foundGold);
@@ -743,11 +770,16 @@ async function applyEndMission(victory, earnedXp, bonusXp, foundGold) {
 
   if (victory && typeof completeMission === 'function') {
     await completeMission();
+  } else if (!victory && sessionCode && typeof resetMissionGoalsForMission === 'function') {
+    const currentMission = Math.max(1, parseInt(sessionPlayers[playerId]?.missionCount, 10) || 1);
+    await resetMissionGoalsForMission(currentMission, true);
+    if (typeof renderPartyTab === 'function') renderPartyTab();
+    if (typeof renderPlayerTab === 'function') renderPlayerTab();
   } else if (typeof renderPlayerTab === 'function') {
     renderPlayerTab();
   }
 
-  if (typeof switchTab === 'function') switchTab('player');
+  if (typeof switchTab === 'function') switchTab(goToCityEvent ? 'events' : 'player');
 }
 
 function _showRestOverlay(playedCards, callback) {
@@ -1133,6 +1165,7 @@ function renderPartyTab() {
 
   function renderMissionGoalBlock(p, isMe) {
     if (!isMe || !sessionCode) return '';
+    if (!missionHasBattleGoals(p.missionCount || 1)) return '';
 
     const activeGoalId = p.activeMissionGoal;
     const draft = Array.isArray(missionGoalDrafts[playerId]) ? missionGoalDrafts[playerId] : [];
