@@ -865,6 +865,9 @@ function _showLoseConfirmOverlay(cardId, callback) {
 // Update char cards (taken / available)
 
 function updateCharCards() {
+  const resetWrap = document.getElementById('local-reset-wrap');
+  if (resetWrap) resetWrap.classList.toggle('hidden', !!sessionCode);
+
   ['HA', 'DE', 'VW', 'RG'].forEach(code => {
     const card = document.getElementById(`charcard-${code}`);
     if (!card) return;
