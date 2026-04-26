@@ -91,9 +91,6 @@ function init() {
   const savedChar = lsGet('activeChar', null);
   if (savedChar && CHARS[savedChar]) selectChar(savedChar);
   initSession();
-  // show local reset button only when no session
-  const resetWrap = document.getElementById('local-reset-wrap');
-  if (resetWrap && !sessionCode) resetWrap.classList.remove('hidden');
 }
 
 init();
